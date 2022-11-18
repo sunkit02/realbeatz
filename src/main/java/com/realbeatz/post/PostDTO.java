@@ -32,7 +32,7 @@ public class PostDTO {
                 .artists(post.getArtists())
                 .likes(post.getLikes())
                 .comments(comments)
-                .userId(post.getUser().getId())
+                .userId(post.getCreator().getId())
                 .postTime(post.getPostTime())
                 .build();
     }

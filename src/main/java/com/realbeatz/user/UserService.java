@@ -1,8 +1,8 @@
 package com.realbeatz.user;
 
-import com.realbeatz.exception.DuplicateUsernameException;
-import com.realbeatz.exception.InvalidUserInputException;
-import com.realbeatz.exception.InvalidUserIdException;
+import com.realbeatz.exceptions.DuplicateUsernameException;
+import com.realbeatz.exceptions.InvalidUserInputException;
+import com.realbeatz.exceptions.InvalidUserIdException;
 import com.realbeatz.user.profile.UserProfile;
 import com.realbeatz.util.UserUtils;
 import lombok.AllArgsConstructor;
@@ -17,7 +17,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.Predicate;
 
-import static com.realbeatz.util.ValidationUtils.validate;
+import static com.realbeatz.util.ValidationUtils.validateField;
 
 @Service
 @AllArgsConstructor
@@ -80,7 +80,7 @@ public class UserService {
         for (Map.Entry<String, Object> entry : userInputs.entrySet()) {
             String field = entry.getKey();
             Object value = entry.getValue();
-            validate(field, value, userAccountChecks);
+            validateField(field, value, userAccountChecks);
         }
 
 
@@ -165,7 +165,12 @@ public class UserService {
     }
 
 
-    User save(User user) {
+    public User save(User user) {
         return userRepository.save(user);
+    }
+
+
+    public void deleteAllUsers() {
+        userRepository.deleteAll();
     }
 }

@@ -57,10 +57,10 @@ public class Post {
 
     @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.DETACH)
     @JoinColumn(
-            name = "user_id",
+            name = "creator_id",
             referencedColumnName = "user_id",
             nullable = false
     )
-    private User user;
+    private User creator;
     private LocalDateTime postTime;
 }

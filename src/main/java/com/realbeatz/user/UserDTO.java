@@ -2,6 +2,7 @@ package com.realbeatz.user;
 
 import com.realbeatz.groupchat.GroupChat;
 import com.realbeatz.post.PostDTO;
+import com.realbeatz.user.friends.FriendRequestDTO;
 import com.realbeatz.user.profile.UserProfile;
 import lombok.Builder;
 import lombok.Data;
@@ -14,11 +15,13 @@ import java.util.List;
 public class UserDTO {
     private Long id;
     private String username;
+    private LocalDate registrationDate;
     private UserProfile profile;
     private List<String> friends;
     private List<String> groupChats;
     private List<PostDTO> posts;
-    private LocalDate registrationDate;
+    private List<FriendRequestDTO> friendRequestsSent;
+    private List<FriendRequestDTO> friendRequestsReceived;
 
     public static UserDTO map(User user) {
         // todo: change into something that includes user ids
@@ -33,6 +36,16 @@ public class UserDTO {
         List<PostDTO> posts = user.getPosts().stream()
                 .map(PostDTO::map)
                 .toList();
+
+        List<FriendRequestDTO> friendRequestsSentDTOs =
+                user.getFriendRequestsSent().stream()
+                        .map(FriendRequestDTO::map)
+                        .toList();
+
+        List<FriendRequestDTO> friendRequestsReceivedDTOs =
+                user.getFriendRequestsReceived().stream()
+                        .map(FriendRequestDTO::map)
+                        .toList();
         return UserDTO.builder()
                 .id(user.getId())
                 .username(user.getUsername())
@@ -41,6 +54,8 @@ public class UserDTO {
                 .friends(friendUsernames)
                 .groupChats(groupChatNames)
                 .posts(posts)
+                .friendRequestsSent(friendRequestsSentDTOs)
+                .friendRequestsReceived(friendRequestsReceivedDTOs)
                 .build();
     }
 }

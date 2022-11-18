@@ -1,10 +1,9 @@
 package com.realbeatz.requests;
 
-import lombok.Data;
+import lombok.Value;
 
-@Data
+@Value
 public class NewCommentRequest {
-
-    private String content;
-    private Long userId;
+    Long userId;
+    String content;
 }

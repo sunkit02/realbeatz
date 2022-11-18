@@ -1,9 +1,11 @@
 package com.realbeatz.user;
 
-import com.realbeatz.dto.Message;
-import com.realbeatz.exception.DuplicateUsernameException;
-import com.realbeatz.exception.InvalidUserIdException;
-import com.realbeatz.exception.InvalidUserInputException;
+import com.realbeatz.dto.ErrorMessage;
+import com.realbeatz.exceptions.DuplicateUsernameException;
+import com.realbeatz.exceptions.InvalidUserIdException;
+import com.realbeatz.exceptions.InvalidUserInputException;
+import com.realbeatz.post.PostDTO;
+import com.realbeatz.post.PostService;
 import com.realbeatz.requests.RegisterUserRequest;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -11,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -20,6 +23,7 @@ import java.util.Map;
 public class UserController {
 
     private final UserService userService;
+    private final PostService postService;
 
     @GetMapping
     public ResponseEntity<?> getAllUsers(
@@ -46,7 +50,7 @@ public class UserController {
                 log.error("Error getting user with id: {}", userId, e);
                 return ResponseEntity
                         .status(HttpStatus.BAD_REQUEST)
-                        .body(Message.of(e.getMessage()));
+                        .body(ErrorMessage.of(e.getMessage()));
             }
 
         // return actual user object
@@ -57,7 +61,7 @@ public class UserController {
             log.error("Error getting user with id: {}", userId, e);
             return ResponseEntity
                     .status(HttpStatus.BAD_REQUEST)
-                    .body(Message.of(e.getMessage()));
+                    .body(ErrorMessage.of(e.getMessage()));
         }
         return ResponseEntity.ok(user);
     }
@@ -83,7 +87,7 @@ public class UserController {
 
             return ResponseEntity
                     .status(HttpStatus.BAD_REQUEST)
-                    .body(Message.of(e.getMessage()));
+                    .body(ErrorMessage.of(e.getMessage()));
         }
         return ResponseEntity
                 .status(HttpStatus.CREATED)
@@ -104,7 +108,7 @@ public class UserController {
             log.error("Error updating user with id: {}", userId, e);
             return ResponseEntity
                     .status(HttpStatus.BAD_REQUEST)
-                    .body(Message.of(e.getMessage()));
+                    .body(ErrorMessage.of(e.getMessage()));
         }
 
         return ResponseEntity.ok(userDTO);
@@ -124,7 +128,7 @@ public class UserController {
             log.error("Error updating user profile with id: {}", userId, e);
             return ResponseEntity
                     .status(HttpStatus.BAD_REQUEST)
-                    .body(Message.of(e.getMessage()));
+                    .body(ErrorMessage.of(e.getMessage()));
         }
 
         return ResponseEntity.ok(userDTO);
@@ -142,11 +146,31 @@ public class UserController {
             log.error("Error deleting user with id: {}", userId, e);
             return ResponseEntity
                     .status(HttpStatus.BAD_REQUEST)
-                    .body(Message.of(e.getMessage()));
+                    .body(ErrorMessage.of(e.getMessage()));
         }
 
-        return ResponseEntity.ok(Message.of(
-                "User with id: " + userId + " has been deleted"));
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{userId}/posts")
+    public ResponseEntity<?> getAllPostsByUser(
+            @PathVariable("userId") Long userId) {
+
+        log.info("Getting all posts by user with id: {}", userId);
+
+        List<PostDTO> posts;
+
+        try {
+            posts = postService.getAllPostsByUser(userId);
+        } catch (InvalidUserIdException e) {
+            log.error("Error getting all posts by user with id: {}", userId, e);
+
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(ErrorMessage.of(e.getMessage()));
+        }
+
+        return ResponseEntity.ok(posts);
     }
 }
 

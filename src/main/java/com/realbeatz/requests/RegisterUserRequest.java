@@ -1,12 +1,11 @@
 package com.realbeatz.requests;
 
-import lombok.Data;
+import lombok.Value;
 
 import java.time.LocalDate;
 
-@Data
+@Value
 public class RegisterUserRequest {
-
     String username;
     String password;
     String lastName;

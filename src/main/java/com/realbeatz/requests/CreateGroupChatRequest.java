@@ -1,10 +1,9 @@
 package com.realbeatz.requests;
 
-import lombok.Data;
+import lombok.Value;
 
-@Data
+@Value
 public class CreateGroupChatRequest {
-
-    private Long userId;
-    private String chatName;
+    Long userId;
+    String chatName;
 }

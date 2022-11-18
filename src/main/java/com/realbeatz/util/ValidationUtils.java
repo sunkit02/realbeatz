@@ -1,12 +1,12 @@
 package com.realbeatz.util;
 
-import com.realbeatz.exception.InvalidUserInputException;
+import com.realbeatz.exceptions.InvalidUserInputException;
 
 import java.util.Map;
 import java.util.function.Predicate;
 
 public class ValidationUtils {
-    public static void validate(
+    public static void validateField(
             String field,
             Object value,
             Map<String, Predicate<Object>> checks) throws InvalidUserInputException {

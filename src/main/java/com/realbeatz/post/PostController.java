@@ -1,9 +1,9 @@
 package com.realbeatz.post;
 
-import com.realbeatz.dto.Message;
-import com.realbeatz.exception.InvalidPostIdException;
-import com.realbeatz.exception.InvalidUserInputException;
-import com.realbeatz.exception.InvalidUserIdException;
+import com.realbeatz.dto.ErrorMessage;
+import com.realbeatz.exceptions.InvalidPostIdException;
+import com.realbeatz.exceptions.InvalidUserIdException;
+import com.realbeatz.exceptions.InvalidUserInputException;
 import com.realbeatz.post.comment.CommentDTO;
 import com.realbeatz.requests.CreatePostRequest;
 import com.realbeatz.requests.NewCommentRequest;
@@ -42,7 +42,7 @@ public class PostController {
             log.error("Error getting post with id: {}", postId, e);
             return ResponseEntity
                     .status(HttpStatus.BAD_REQUEST)
-                    .body(Message.of(e.getMessage()));
+                    .body(ErrorMessage.of(e.getMessage()));
         }
         return ResponseEntity.ok(post);
     }
@@ -61,7 +61,7 @@ public class PostController {
             log.error("Error creating new post: {}", request);
             return ResponseEntity
                     .status(HttpStatus.BAD_REQUEST)
-                    .body(Message.of(e.getMessage()));
+                    .body(ErrorMessage.of(e.getMessage()));
         }
         return ResponseEntity.ok(newPost);
     }
@@ -83,11 +83,18 @@ public class PostController {
                     postId, updates, e);
             return ResponseEntity
                     .status(HttpStatus.BAD_REQUEST)
-                    .body(Message.of(e.getMessage()));
+                    .body(ErrorMessage.of(e.getMessage()));
         }
 
         return ResponseEntity.ok(postDTO);
     }
+
+    // todo: delete posts
+
+    // todo: like posts
+
+    // todo: unlike a post
+
 
     @GetMapping("/{postId}/comment")
     public ResponseEntity<?> getAllCommentsOfPostById(
@@ -103,13 +110,13 @@ public class PostController {
 
             return ResponseEntity
                     .status(HttpStatus.BAD_REQUEST)
-                    .body(Message.of(e.getMessage()));
+                    .body(ErrorMessage.of(e.getMessage()));
         }
 
         return ResponseEntity.ok(commentDTOList);
     }
 
-    //todo: implement method to get specific comment on post
+    //todo: get specific comment on post
 
     @PostMapping("/{postId}/comment/create")
     public ResponseEntity<?> createNewComment(
@@ -128,12 +135,16 @@ public class PostController {
 
             return ResponseEntity
                     .status(HttpStatus.BAD_REQUEST)
-                    .body(Message.of(e.getMessage()));
+                    .body(ErrorMessage.of(e.getMessage()));
         }
 
         return ResponseEntity.ok(newCommentDTO);
     }
 
-    // todo: implement method to like a post
+    // todo: update comment
+
+    // todo: delete comment
+
+
 
 }

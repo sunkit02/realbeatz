@@ -1,7 +1,7 @@
 package com.realbeatz.groupchat;
 
-import com.realbeatz.dto.Message;
-import com.realbeatz.exception.InvalidUserIdException;
+import com.realbeatz.dto.ErrorMessage;
+import com.realbeatz.exceptions.InvalidUserIdException;
 import com.realbeatz.requests.CreateGroupChatRequest;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,7 +34,7 @@ public class GroupChatController {
     public ResponseEntity<?> createNewGroupChat(
             @RequestBody CreateGroupChatRequest request) {
 
-        GroupChatDTO newGroupChat = null;
+        GroupChatDTO newGroupChat;
         try {
             newGroupChat = groupChatService.
                     createNewGroupChat(request.getUserId(), request.getChatName());
@@ -42,7 +42,7 @@ public class GroupChatController {
             log.error("Error creating new group chat: {}", request, e);
             return ResponseEntity
                     .status(HttpStatus.BAD_REQUEST)
-                    .body(Message.of(e.getMessage()));
+                    .body(ErrorMessage.of(e.getMessage()));
         }
 
         return ResponseEntity.ok(newGroupChat);

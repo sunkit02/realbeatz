@@ -28,7 +28,9 @@ public class Comment {
     @Column(name = "comment_id", nullable = false)
     private Long id;
 
+    @Column(length = 100, nullable = false)
     private String content;
+    @Column(nullable = false)
     private LocalDateTime timePosted;
 
     @ManyToOne(

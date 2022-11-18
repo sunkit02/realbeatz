@@ -3,6 +3,7 @@ package com.realbeatz.user;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.realbeatz.groupchat.GroupChat;
 import com.realbeatz.post.Post;
+import com.realbeatz.user.friends.FriendRequest;
 import com.realbeatz.user.profile.UserProfile;
 import lombok.*;
 
@@ -36,7 +37,7 @@ public class User {
     @Column(name = "user_id", nullable = false)
     private Long id;
 
-    @Column(length = MAX_USERNAME_LENGTH,nullable = false, unique = true)
+    @Column(length = MAX_USERNAME_LENGTH, nullable = false, unique = true)
     private String username;
 
     @Column(length = MAX_PASSWORD_LENGTH, nullable = false)
@@ -46,6 +47,7 @@ public class User {
     private LocalDate registrationDate;
 
     @OneToOne(
+            fetch = FetchType.EAGER,
             cascade = CascadeType.ALL,
             orphanRemoval = true)
     @JoinColumn(name = "profile_id", referencedColumnName = "profile_id")
@@ -73,15 +75,39 @@ public class User {
     @Builder.Default
     private Set<User> friendsOf = new HashSet<>();
 
-    @ManyToMany(mappedBy = "members", cascade = CascadeType.DETACH)
+    @ManyToMany(
+            mappedBy = "members",
+            cascade = CascadeType.DETACH,
+            fetch = FetchType.LAZY)
     @ToString.Exclude
     @Builder.Default
     private Set<GroupChat> groupChats = new HashSet<>();
 
-    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @OneToMany(
+            mappedBy = "creator",
+            fetch = FetchType.LAZY,
+            cascade = CascadeType.ALL)
     @ToString.Exclude
     @Builder.Default
     private Set<Post> posts = new HashSet<>();
+
+    @OneToMany(
+            mappedBy = "requester",
+            fetch = FetchType.LAZY,
+            cascade = CascadeType.ALL,
+            orphanRemoval = true)
+    @ToString.Exclude
+    @Builder.Default
+    private Set<FriendRequest> friendRequestsSent = new HashSet<>();
+
+    @OneToMany(
+            mappedBy = "newFriend",
+            fetch = FetchType.LAZY,
+            cascade = CascadeType.ALL,
+            orphanRemoval = true)
+    @ToString.Exclude
+    @Builder.Default
+    private Set<FriendRequest> friendRequestsReceived = new HashSet<>();
 
 
 }

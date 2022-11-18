@@ -1,6 +1,6 @@
 package com.realbeatz.groupchat;
 
-import com.realbeatz.exception.InvalidUserIdException;
+import com.realbeatz.exceptions.InvalidUserIdException;
 import com.realbeatz.user.User;
 import com.realbeatz.user.UserService;
 import lombok.AllArgsConstructor;
@@ -38,5 +38,9 @@ public class GroupChatService {
 
         groupChatRepository.save(groupChat);
         return GroupChatDTO.map(groupChat);
+    }
+
+    public void deleteAllGroupChats() {
+        groupChatRepository.deleteAll();
     }
 }

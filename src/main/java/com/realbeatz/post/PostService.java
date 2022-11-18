@@ -1,8 +1,8 @@
 package com.realbeatz.post;
 
-import com.realbeatz.exception.InvalidPostIdException;
-import com.realbeatz.exception.InvalidUserInputException;
-import com.realbeatz.exception.InvalidUserIdException;
+import com.realbeatz.exceptions.InvalidPostIdException;
+import com.realbeatz.exceptions.InvalidUserInputException;
+import com.realbeatz.exceptions.InvalidUserIdException;
 import com.realbeatz.post.comment.Comment;
 import com.realbeatz.post.comment.CommentDTO;
 import com.realbeatz.post.comment.CommentRepository;
@@ -21,7 +21,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.Predicate;
 
-import static com.realbeatz.util.ValidationUtils.validate;
+import static com.realbeatz.util.ValidationUtils.validateField;
 
 @Service
 @AllArgsConstructor
@@ -65,11 +65,11 @@ public class PostService {
         for (Map.Entry<String, String> entry : input.entrySet()) {
             String field = entry.getKey();
             String value = entry.getValue();
-            validate(field, value, postChecks);
+            validateField(field, value, postChecks);
         }
 
         Post post = Post.builder()
-                .user(user)
+                .creator(user)
                 .content(content)
                 .artists(artists)
                 .songTitle(songTitle)
@@ -132,7 +132,7 @@ public class PostService {
         for (String key : validKeys) {
             String value = updates.get(key);
             // validate user input against check
-            validate(key, value, postChecks);
+            validateField(key, value, postChecks);
 
             // update post content after passing check
             Field field = ReflectionUtils.findField(Post.class, key);
@@ -142,5 +142,14 @@ public class PostService {
 
         postRepository.save(post);
         return PostDTO.map(post);
+    }
+
+    public List<PostDTO> getAllPostsByUser(Long userId) throws InvalidUserIdException {
+
+        User user = userService.getUserById(userId);
+
+        return postRepository.findPostByCreator(user).stream()
+                .map(PostDTO::map)
+                .toList();
     }
 }

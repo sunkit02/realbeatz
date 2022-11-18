@@ -1,4 +1,4 @@
-package com.realbeatz.exception;
+package com.realbeatz.exceptions;
 
 public class InvalidUserIdException extends Exception{
     public InvalidUserIdException(String message) {

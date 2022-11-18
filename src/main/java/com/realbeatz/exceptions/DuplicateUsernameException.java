@@ -1,4 +1,4 @@
-package com.realbeatz.exception;
+package com.realbeatz.exceptions;
 
 public class DuplicateUsernameException extends Exception{
     public DuplicateUsernameException(String message) {

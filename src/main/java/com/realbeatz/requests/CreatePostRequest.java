@@ -1,12 +1,11 @@
 package com.realbeatz.requests;
 
-import lombok.Data;
+import lombok.Value;
 
-@Data
+@Value
 public class CreatePostRequest {
-
-    private Long userId;
-    private String content;
-    private String songTitle;
-    private String artists;
+    Long userId;
+    String content;
+    String songTitle;
+    String artists;
 }
