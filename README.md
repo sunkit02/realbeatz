@@ -12,3 +12,17 @@ Group members:
 - Michael Sickle
 - Roger Blankenship
 - Sun Kit Tsui
+_____________________________________________
+
+Technologies used
+<br>
+Backend:
+- Java
+- Spring Boot
+- Spring Security
+- Spring Data Jpa
+
+Frontend:
+- HTML
+- CSS
+- Javascript
