@@ -47,6 +47,7 @@ public class WebSecurityConfig {
                 .addFilter(authenticationFilter)
                 .addFilterAfter(new JwtTokenVerifierFilter(secretKey, jwtConfig), JwtUsernameAndPasswordAuthenticationFilter.class)
                 .authorizeHttpRequests()
+                .antMatchers("/api/test/**").permitAll()
                 .antMatchers("/api/auth/login").permitAll()
                 .antMatchers("/api/auth/register").permitAll()
                 .anyRequest().authenticated();
