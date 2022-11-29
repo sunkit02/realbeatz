@@ -22,6 +22,9 @@ public class FrontendTestController {
 
     @GetMapping("/friends")
     public ResponseEntity<?> getFriendsList() {
-        return ResponseEntity.ok(friendList);
+        return ResponseEntity
+                .status(200)
+                .header("test_header", "Test header value")
+                .body(friendList);
     }
 }
