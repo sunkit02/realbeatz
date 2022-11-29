@@ -1,4 +1,4 @@
-package com.realbeatz.dto;
+package com.realbeatz.payloads.responses;
 
 public enum MessageType {
     ERROR,

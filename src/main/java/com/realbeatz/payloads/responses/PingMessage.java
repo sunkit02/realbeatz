@@ -1,4 +1,4 @@
-package com.realbeatz.dto;
+package com.realbeatz.payloads.responses;
 
 import lombok.EqualsAndHashCode;
 import lombok.Value;

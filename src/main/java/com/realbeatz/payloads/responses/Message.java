@@ -1,4 +1,4 @@
-package com.realbeatz.dto;
+package com.realbeatz.payloads.responses;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

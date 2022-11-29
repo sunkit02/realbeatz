@@ -3,6 +3,8 @@ package com.realbeatz.user;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.realbeatz.groupchat.GroupChat;
 import com.realbeatz.post.Post;
+import com.realbeatz.security.auth.AuthUserDetails;
+import com.realbeatz.security.auth.roles.ApplicationUserRole;
 import com.realbeatz.user.friends.FriendRequest;
 import com.realbeatz.user.profile.UserProfile;
 import lombok.*;
@@ -109,5 +111,16 @@ public class User {
     @Builder.Default
     private Set<FriendRequest> friendRequestsReceived = new HashSet<>();
 
+    // Authentication and Authorization Fields
+
+    @OneToOne(
+            cascade = CascadeType.ALL,
+            mappedBy = "user",
+            orphanRemoval = true)
+    private AuthUserDetails authUserDetails;
+
+    @Enumerated(EnumType.STRING)
+    @Column(length = 20)
+    private ApplicationUserRole role;
 
 }

@@ -1,11 +1,14 @@
 package com.realbeatz.user;
 
 import com.realbeatz.exceptions.DuplicateUsernameException;
-import com.realbeatz.exceptions.InvalidUserInputException;
 import com.realbeatz.exceptions.InvalidUserIdException;
+import com.realbeatz.exceptions.InvalidUserInputException;
+import com.realbeatz.exceptions.InvalidUsernameException;
+import com.realbeatz.security.auth.AuthUserDetails;
 import com.realbeatz.user.profile.UserProfile;
 import com.realbeatz.util.UserUtils;
 import lombok.AllArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ReflectionUtils;
 
@@ -17,6 +20,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.Predicate;
 
+import static com.realbeatz.security.auth.roles.ApplicationUserRole.USER;
 import static com.realbeatz.util.ValidationUtils.validateField;
 
 @Service
@@ -24,6 +28,7 @@ import static com.realbeatz.util.ValidationUtils.validateField;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
     private final List<String> UPDATABLE_USER_FIELDS =
             List.of("username", "password");
     private final List<String> UPDATABLE_USER_PROFILE_FIELDS =
@@ -86,8 +91,9 @@ public class UserService {
 
         User newUser = User.builder()
                 .username(username)
-                .password(password)
+                .password(passwordEncoder.encode(password))
                 .registrationDate(LocalDate.now())
+                .role(USER)
                 .build();
 
         UserProfile newUserProfile = UserProfile.builder()
@@ -95,10 +101,15 @@ public class UserService {
                 .lastName(lastName)
                 .firstName(firstName)
                 .dob(dob)
-                .bio(bio == null ? "" : bio)
+                .bio((bio == null) ? "" : bio)
+                .build();
+
+        AuthUserDetails authUserDetails = AuthUserDetails.builder()
+                .user(newUser)
                 .build();
 
         newUser.setProfile(newUserProfile);
+        newUser.setAuthUserDetails(authUserDetails);
 
         userRepository.save(newUser);
         return UserDTO.map(newUser);
@@ -125,10 +136,14 @@ public class UserService {
 
         // update values for each field
         validKeys.forEach(key -> {
-
             Field field = ReflectionUtils.findField(User.class, key);
             Objects.requireNonNull(field).setAccessible(true);
-            ReflectionUtils.setField(field, user, updates.get(key));
+
+            String value = updates.get(key);
+            if (key.equals("password")) {
+                value = passwordEncoder.encode(value);
+            }
+            ReflectionUtils.setField(field, user, value);
         });
 
         userRepository.save(user);
@@ -165,12 +180,14 @@ public class UserService {
     }
 
 
+    @SuppressWarnings("all")
     public User save(User user) {
         return userRepository.save(user);
     }
 
-
-    public void deleteAllUsers() {
-        userRepository.deleteAll();
+    public User getUserByUsername(String username) throws InvalidUsernameException {
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new InvalidUsernameException(
+                        "User with username: " + username + " doesn't exist"));
     }
 }

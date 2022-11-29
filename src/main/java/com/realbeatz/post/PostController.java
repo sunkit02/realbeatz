@@ -1,12 +1,12 @@
 package com.realbeatz.post;
 
-import com.realbeatz.dto.ErrorMessage;
+import com.realbeatz.payloads.responses.ErrorMessage;
 import com.realbeatz.exceptions.InvalidPostIdException;
 import com.realbeatz.exceptions.InvalidUserIdException;
 import com.realbeatz.exceptions.InvalidUserInputException;
 import com.realbeatz.post.comment.CommentDTO;
-import com.realbeatz.requests.CreatePostRequest;
-import com.realbeatz.requests.NewCommentRequest;
+import com.realbeatz.payloads.requests.CreatePostRequest;
+import com.realbeatz.payloads.requests.NewCommentRequest;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;

@@ -1,16 +1,14 @@
 package com.realbeatz.user;
 
-import com.realbeatz.dto.ErrorMessage;
-import com.realbeatz.exceptions.DuplicateUsernameException;
 import com.realbeatz.exceptions.InvalidUserIdException;
-import com.realbeatz.exceptions.InvalidUserInputException;
+import com.realbeatz.payloads.responses.ErrorMessage;
 import com.realbeatz.post.PostDTO;
 import com.realbeatz.post.PostService;
-import com.realbeatz.requests.RegisterUserRequest;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -26,6 +24,7 @@ public class UserController {
     private final PostService postService;
 
     @GetMapping
+    @PreAuthorize("hasAuthority('admin:read')")
     public ResponseEntity<?> getAllUsers(
             @RequestParam(name = "isDto",
                     required = false,
@@ -37,11 +36,12 @@ public class UserController {
     }
 
     @GetMapping("/{userId}")
+    @PreAuthorize("hasAnyAuthority('user:read','admin:read')")
     public ResponseEntity<?> getUserById(
             @PathVariable(name = "userId") Long userId,
             @RequestParam(name = "isDto",
                     required = false,
-                    defaultValue = "false") Boolean isDto) {
+                    defaultValue = "true") Boolean isDto) {
         // return dto version of user if indicated
         if (isDto)
             try {
@@ -66,36 +66,9 @@ public class UserController {
         return ResponseEntity.ok(user);
     }
 
-    @PostMapping("/register")
-    public ResponseEntity<?> registerUser(
-            @RequestBody RegisterUserRequest request) {
-
-        log.info("Request: {}", request);
-
-        UserDTO userDTO;
-
-        try {
-            userDTO = userService.registerUser(
-                    request.getUsername(),
-                    request.getPassword(),
-                    request.getLastName(),
-                    request.getFirstName(),
-                    request.getDob(),
-                    request.getBio());
-        } catch (DuplicateUsernameException | InvalidUserInputException e) {
-            log.error("Error processing request: {}", request, e);
-
-            return ResponseEntity
-                    .status(HttpStatus.BAD_REQUEST)
-                    .body(ErrorMessage.of(e.getMessage()));
-        }
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(userDTO);
-    }
-
     // todo: add patch method used to update user properties
     @PatchMapping("/update/{userId}")
+    @PreAuthorize("hasRole('ROLE_USER')")
     public ResponseEntity<?> updateUser(
             @PathVariable Long userId,
             @RequestBody Map<String, String> updates) {
@@ -115,6 +88,7 @@ public class UserController {
     }
 
     @PatchMapping("/update/{userId}/profile")
+    @PreAuthorize("hasRole('ROLE_USER')")
     public ResponseEntity<?> updateUserProfile(
             @PathVariable("userId") Long userId,
             @RequestBody Map<String, String> updates) {
@@ -135,6 +109,7 @@ public class UserController {
     }
 
     @DeleteMapping("/delete/{userId}")
+    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN')")
     public ResponseEntity<?> deleteUser(
             @PathVariable("userId") Long userId) {
 
@@ -153,6 +128,7 @@ public class UserController {
     }
 
     @GetMapping("/{userId}/posts")
+    @PreAuthorize("hasRole('ROLE_USER')")
     public ResponseEntity<?> getAllPostsByUser(
             @PathVariable("userId") Long userId) {
 

@@ -1,10 +1,10 @@
 package com.realbeatz.user.friends;
 
-import com.realbeatz.dto.ErrorMessage;
+import com.realbeatz.payloads.responses.ErrorMessage;
 import com.realbeatz.exceptions.InvalidDeleteFriendException;
 import com.realbeatz.exceptions.InvalidFriendRequestException;
 import com.realbeatz.exceptions.InvalidUserIdException;
-import com.realbeatz.requests.*;
+import com.realbeatz.payloads.requests.*;
 import com.realbeatz.user.UserDTO;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

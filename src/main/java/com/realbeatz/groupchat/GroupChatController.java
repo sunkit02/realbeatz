@@ -1,8 +1,8 @@
 package com.realbeatz.groupchat;
 
-import com.realbeatz.dto.ErrorMessage;
+import com.realbeatz.payloads.responses.ErrorMessage;
 import com.realbeatz.exceptions.InvalidUserIdException;
-import com.realbeatz.requests.CreateGroupChatRequest;
+import com.realbeatz.payloads.requests.CreateGroupChatRequest;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
