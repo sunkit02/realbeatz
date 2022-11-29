@@ -3,6 +3,7 @@ package com.realbeatz.user.friends;
 import com.realbeatz.exceptions.InvalidDeleteFriendException;
 import com.realbeatz.exceptions.InvalidFriendRequestException;
 import com.realbeatz.exceptions.InvalidUserIdException;
+import com.realbeatz.exceptions.InvalidUsernameException;
 import com.realbeatz.user.User;
 import com.realbeatz.user.UserDTO;
 import com.realbeatz.user.UserRepository;
@@ -24,21 +25,40 @@ public class FriendsService {
     private final UserRepository userRepository;
     private final FriendRequestRepository friendRequestRepository;
 
-    public List<UserDTO> getAllFriendsByUserId(Long userId) throws InvalidUserIdException {
+    public List<UserDTO> getAllFriends(Long userId) throws InvalidUserIdException {
         User user = userService.getUserById(userId);
+        return getAllFriends(user);
+    }
+
+    public List<UserDTO> getAllFriends(String username) throws InvalidUserIdException, InvalidUsernameException {
+        User user = userService.getUserByUsername(username);
+        return getAllFriends(user);
+    }
+
+    public List<UserDTO> getAllFriends(User user) {
         return user.getFriends().stream()
                 .map(UserDTO::map)
                 .toList();
     }
 
     public void addNewFriend(Long userId, Long friendId) throws InvalidUserIdException, InvalidFriendRequestException {
+        User user = userService.getUserById(userId);
+        addNewFriend(user, friendId);
+    }
+
+    public void addNewFriend(String username, Long friendId) throws InvalidUserIdException, InvalidFriendRequestException, InvalidUsernameException {
+        User user = userService.getUserByUsername(username);
+        addNewFriend(user, friendId);
+    }
+
+
+    public void addNewFriend(User user, Long friendId) throws InvalidUserIdException, InvalidFriendRequestException {
         // check if user is adding oneself as friend
-        if (userId.equals(friendId)) {
+        if (user.getId().equals(friendId)) {
             throw new InvalidUserIdException(
                     "User cannot add oneself as friend");
         }
 
-        User user = userService.getUserById(userId);
         User friend = userService.getUserById(friendId);
 
         Set<User> userFriends = user.getFriends();
@@ -47,13 +67,13 @@ public class FriendsService {
         // check if friendship has already been established
         if (userFriends.contains(friend)) {
             throw new InvalidFriendRequestException(
-                    "User with id: " + userId +
+                    "User with id: " + user.getId() +
                             " already is friends with id : " + friendId);
         }
         if (friendFriends.contains(user)) {
             throw new InvalidFriendRequestException(
                     "User with id: " + friendId +
-                            " already is friends with id : " + userId);
+                            " already is friends with id : " + user.getId());
         }
 
         // establish friendship
@@ -72,7 +92,6 @@ public class FriendsService {
     }
 
     public void deleteFriend(Long userId, Long friendId) throws InvalidUserIdException, InvalidDeleteFriendException {
-
         if (userId.equals(friendId)) {
             throw new InvalidUserIdException(
                     "User cannot delete oneself as friend");
@@ -81,19 +100,36 @@ public class FriendsService {
         User user = userService.getUserById(userId);
         User friend = userService.getUserById(friendId);
 
+        deleteFriend(user, friend);
+    }
+
+    public void deleteFriend(String username, Long friendId) throws InvalidUserIdException, InvalidDeleteFriendException, InvalidUsernameException {
+        User user = userService.getUserByUsername(username);
+        User friend = userService.getUserById(friendId);
+        if (user.getId().equals(friendId)) {
+            throw new InvalidUserIdException(
+                    "User cannot delete oneself as friend");
+        }
+
+        deleteFriend(user, friend);
+    }
+
+
+    public void deleteFriend(User user, User friend) throws InvalidUserIdException, InvalidDeleteFriendException {
+
         Set<User> userFriends = user.getFriends();
         Set<User> friendFriends = friend.getFriends();
 
         // check if friendship exists
         if (!userFriends.contains(friend)) {
             throw new InvalidDeleteFriendException(
-                    "User with id: " + userId + " doesn't have a friend " +
-                            "with id: " + friendId);
+                    "User with username: " + user.getUsername() + " doesn't have a friend " +
+                            "with username: " + friend.getUsername());
         }
         if (!friendFriends.contains(user)) {
             throw new InvalidDeleteFriendException(
-                    "User with id: " + userId + " doesn't have a friend " +
-                            "with id: " + friendId);
+                    "User with username: " + user.getUsername() + " doesn't have a friend " +
+                            "with username: " + friend.getUsername());
         }
 
 
@@ -104,17 +140,31 @@ public class FriendsService {
         userService.save(friend);
     }
 
-    // todo: add input validation for message
     public void createNewFriendRequest(Long userId, Long newFriendId, String message) throws InvalidUserIdException, InvalidFriendRequestException {
         User user = userService.getUserById(userId);
         User newFriend = userService.getUserById(newFriendId);
 
+        createNewFriendRequest(user, newFriend, message);
+    }
+
+    public void createNewFriendRequest(String username, Long newFriendId, String message) throws InvalidUserIdException, InvalidFriendRequestException, InvalidUsernameException {
+        User user = userService.getUserByUsername(username);
+        User newFriend = userService.getUserById(newFriendId);
+
+        createNewFriendRequest(user, newFriend, message);
+    }
+
+
+    // todo: add input validation for message
+    public void createNewFriendRequest(User user, User newFriend, String message) throws InvalidUserIdException, InvalidFriendRequestException {
+
+
         boolean friendAdded = user.getFriends().contains(newFriend);
 
         // check if the two ids are the same
-        if (userId.equals(newFriendId)) {
+        if (user.getId().equals(newFriend.getId())) {
             throw new InvalidFriendRequestException(
-                    "User with id: " + userId + " is not allowed " +
+                    "User with username: " + user.getUsername() + " is not allowed " +
                             "to request to add oneself as friend");
         }
 
@@ -122,7 +172,8 @@ public class FriendsService {
         // check if relationship has already been established
         if (friendAdded) {
             throw new InvalidFriendRequestException(
-                    "User with id: " + userId + " already has user with id: " + newFriendId
+                    "User with username: " + user.getUsername() +
+                            " already has user with username: " + newFriend.getUsername()
                             + " as a friend");
         }
 
@@ -138,8 +189,9 @@ public class FriendsService {
                     .anyMatch(request -> request.getStatus().equals(SENT));
             if (hasUnprocessedRequest) {
                 throw new InvalidFriendRequestException(
-                        "Friend request for adding user with id: " + newFriendId +
-                                " as a new friend for user with id: " + userId + " already exists");
+                        "Friend request for adding user with username: " + newFriend.getUsername() +
+                                " as a new friend for user with username: " + user.getUsername() +
+                                " already exists");
             }
         }
 
@@ -152,25 +204,30 @@ public class FriendsService {
                 .build();
 
         friendRequestRepository.save(friendRequest);
-//
-//        newFriend.getFriendRequestsSent().add(friendRequest);
-//        newFriend.getFriendRequestsReceived().add(friendRequest);
-//
-//        userService.save(user);
-//        userService.save(newFriend);
-//        friendRequestRepository.save(friendRequest);
 
         System.out.println("\n".repeat(10));
-        System.out.println(UserDTO.map(userService.getUserById(userId)));
-        System.out.println(UserDTO.map(userService.getUserById(newFriendId)));
+        System.out.println(UserDTO.map(userService.getUserById(user.getId())));
+        System.out.println(UserDTO.map(userService.getUserById(newFriend.getId())));
     }
 
     public void confirmFriendRequest(Long userId, Long requesterId) throws InvalidUserIdException, InvalidFriendRequestException {
         User user = userService.getUserById(userId);
         User requester = userService.getUserById(requesterId);
 
+        confirmFriendRequest(user, requester);
+    }
+
+    public void confirmFriendRequest(String username, Long requesterId) throws InvalidUserIdException, InvalidFriendRequestException, InvalidUsernameException {
+        User user = userService.getUserByUsername(username);
+        User requester = userService.getUserById(requesterId);
+
+        confirmFriendRequest(user, requester);
+    }
+
+    public void confirmFriendRequest(User user, User requester) throws InvalidUserIdException, InvalidFriendRequestException {
+
         // check if request exists or has already been processed
-        getUnprocessedFriendRequestsReceived(user, requesterId); // throw exception if it doesn't
+        getUnprocessedFriendRequestsReceived(user, requester.getId()); // throw exception if it doesn't
 
         // todo: find more efficient way to process requests
         // process request
@@ -178,12 +235,12 @@ public class FriendsService {
         // check if current user has also sent out a friend request to the requester
         // set the status sent by current user to CONFIRMED if present
         user.getFriendRequestsSent().stream()
-                .filter(request -> request.getNewFriend().getId().equals(requesterId))
+                .filter(request -> request.getNewFriend().getId().equals(requester.getId()))
                 .findFirst()
                 .ifPresent(request -> request.setStatus(CONFIRMED));
         // set the status of request received to CONFIRMED
         user.getFriendRequestsReceived().stream()
-                .filter(request -> request.getNewFriend().getId().equals(userId))
+                .filter(request -> request.getNewFriend().getId().equals(user.getId()))
                 .findFirst()
                 .ifPresent(request -> request.setStatus(CONFIRMED));
 
@@ -199,15 +256,28 @@ public class FriendsService {
         User user = userService.getUserById(userId);
         User requester = userService.getUserById(requesterId);
 
+        refuseFriendRequest(user, requester);
+    }
+
+    public void refuseFriendRequest(String username, Long requesterId) throws InvalidUserIdException, InvalidFriendRequestException, InvalidUsernameException {
+        User user = userService.getUserByUsername(username);
+        User requester = userService.getUserById(requesterId);
+
+        refuseFriendRequest(user, requester);
+    }
+
+
+    public void refuseFriendRequest(User user, User requester) throws InvalidUserIdException, InvalidFriendRequestException {
+
         // check if request exists or has already been processed
         List<FriendRequest> unprocessedFriendRequestsReceived =
-                getUnprocessedFriendRequestsReceived(user, requesterId);
+                getUnprocessedFriendRequestsReceived(user, requester.getId());
 
         // process request
         // check if current user has also sent out a friend request to the requester
         // delete the request if present
         user.getFriendRequestsSent().stream()
-                .filter(request -> request.getNewFriend().getId().equals(requesterId))
+                .filter(request -> request.getNewFriend().getId().equals(requester.getId()))
                 .filter(request -> request.getStatus().equals(SENT))
                 .findFirst()
                 .ifPresent(request ->
@@ -223,14 +293,26 @@ public class FriendsService {
     public void deleteFriendRequestSent(Long userId, Long newFriendId) throws InvalidUserIdException, InvalidFriendRequestException {
         User user = userService.getUserById(userId);
 
+        deleteFriendRequestSent(user, newFriendId);
+    }
+    public void deleteFriendRequestSent(String username, Long newFriendId) throws InvalidUserIdException, InvalidFriendRequestException, InvalidUsernameException {
+        User user = userService.getUserByUsername(username);
+
+        deleteFriendRequestSent(user, newFriendId);
+    }
+
+
+    public void deleteFriendRequestSent(User user, Long newFriendId) throws InvalidFriendRequestException {
+
         // find all friend requests that sent to new friend
         List<FriendRequest> unprocessedFriendRequestsSent = getUnprocessedFriendRequestsSent(user, newFriendId);
 
         // ensure that an unprocessed request exists
         if (unprocessedFriendRequestsSent.isEmpty()) {
             throw new InvalidFriendRequestException(String.format(
-                    "Friend request between users with ids: %d and %d doesn't exist",
-                    userId, newFriendId));
+                    "Friend request between users with username: %s and " +
+                            "user with id: %d doesn't exist",
+                    user.getUsername(), newFriendId));
         }
 
         // delete friend request if exists

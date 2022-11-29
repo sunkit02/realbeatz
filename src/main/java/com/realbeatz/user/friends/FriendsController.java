@@ -1,18 +1,23 @@
 package com.realbeatz.user.friends;
 
-import com.realbeatz.payloads.responses.ErrorMessage;
 import com.realbeatz.exceptions.InvalidDeleteFriendException;
 import com.realbeatz.exceptions.InvalidFriendRequestException;
 import com.realbeatz.exceptions.InvalidUserIdException;
+import com.realbeatz.exceptions.InvalidUsernameException;
 import com.realbeatz.payloads.requests.*;
+import com.realbeatz.payloads.responses.ErrorMessage;
 import com.realbeatz.user.UserDTO;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.List;
+
+import static com.realbeatz.utils.CustomHeaders.USERNAME;
 
 /**
  * Controller solely for managing friend relationship between users
@@ -20,23 +25,27 @@ import java.util.List;
 @RestController
 @Slf4j
 @AllArgsConstructor
-@RequestMapping("user/friends")
+@RequestMapping("/user/friends")
 public class FriendsController {
 
     private final FriendsService friendsService;
 //    private final SimpMessagingTemplate simpMessagingTemplate;
 
-    @GetMapping("/{userId}")
+    @GetMapping
+    @PreAuthorize("hasAnyAuthority('user:read', 'admin:read')")
     public ResponseEntity<?> getAllFriendsByUserId(
-            @PathVariable("userId") Long userId) {
-        log.info("Getting all friends of user with id: {}", userId);
+            HttpServletRequest request) {
+
+        String username = (String) request.getAttribute(USERNAME);
+
+        log.info("Getting all friends of user with id: {}", username);
 
         List<UserDTO> friendsList;
 
         try {
-            friendsList = friendsService.getAllFriendsByUserId(userId);
-        } catch (InvalidUserIdException e) {
-            log.error("Error getting friends of user with id: {}", userId, e);
+            friendsList = friendsService.getAllFriends(username);
+        } catch (InvalidUserIdException | InvalidUsernameException e) {
+            log.error("Error getting friends of user with username: {}", username, e);
             return ResponseEntity
                     .status(HttpStatus.BAD_REQUEST)
                     .body(ErrorMessage.of(e.getMessage()));
@@ -45,40 +54,48 @@ public class FriendsController {
         return ResponseEntity.ok(friendsList);
     }
 
-    @PostMapping("/{userId}/add")
+    // todo: implement a controller for admins and super admins
+    @Deprecated
+    @PostMapping("/add")
+    @PreAuthorize("hasAnyRole('ROLE_SUPER_ADMIN')")
     public ResponseEntity<?> addNewFriend(
-            @PathVariable("userId") Long userId,
-            @RequestBody AddFriendRequest request) {
+            @RequestBody AddFriendRequest requestBody,
+            HttpServletRequest request) {
+
+        String username = (String) request.getAttribute(USERNAME);
 
         log.info("Adding new friend for " +
-                "user with id: {}, request: {}", userId, request);
+                "user with username: {}, request: {}", username, requestBody);
 
         try {
-            friendsService.addNewFriend(userId, request.getNewFriendId());
-        } catch (InvalidUserIdException | InvalidFriendRequestException e) {
+            friendsService.addNewFriend(username, requestBody.getNewFriendId());
+        } catch (InvalidUserIdException | InvalidFriendRequestException | InvalidUsernameException e) {
             log.error("Error adding new friend for" +
-                    " user with id: {}", userId, e);
+                    " user with username: {}", username, e);
             return ResponseEntity
                     .status(HttpStatus.BAD_REQUEST)
                     .body(ErrorMessage.of(e.getMessage()));
         }
-//        friendsService.addNewFriend2(userId, request.getFriendId());
 
         return ResponseEntity.noContent().build();
     }
 
-    @DeleteMapping("/{userId}/delete")
+    @Deprecated
+    @DeleteMapping("/delete")
+    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_SUPER_ADMIN')")
     public ResponseEntity<?> deleteFriend(
-            @PathVariable("userId") Long userId,
-            @RequestBody DeleteFriendRequest request) {
+            @RequestBody DeleteFriendRequest requestBody,
+            HttpServletRequest request) {
+
+        String username = (String) request.getAttribute(USERNAME);
 
         log.info("Deleting friend for " +
-                "user with id: {}, request: {}", userId, request);
+                "user with username: {}, request: {}", username, requestBody);
 
         try {
-            friendsService.deleteFriend(userId, request.getFriendId());
-        } catch (InvalidUserIdException | InvalidDeleteFriendException e) {
-            log.error("Error deleting friend for user with id: {}", userId, e);
+            friendsService.deleteFriend(username, requestBody.getFriendId());
+        } catch (InvalidUserIdException | InvalidDeleteFriendException | InvalidUsernameException e) {
+            log.error("Error deleting friend for user with username: {}", username, e);
             return ResponseEntity
                     .status(HttpStatus.BAD_REQUEST)
                     .body(ErrorMessage.of(e.getMessage()));
@@ -87,22 +104,26 @@ public class FriendsController {
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/{userId}/request")
+    @PostMapping("/request")
+    @PreAuthorize("hasRole('ROLE_USER')")
     public ResponseEntity<?> createNewFriendRequest(
-            @PathVariable("userId") Long userId,
-            @RequestBody AddFriendRequest request) {
-        log.info("Creating new friend request for user with id: {}, request{}",
-                userId, request);
+            @RequestBody AddFriendRequest requestBody,
+            HttpServletRequest request) {
+
+        String username = (String) request.getAttribute(USERNAME);
+
+        log.info("Creating new friend request for user with username: {}, request{}",
+                username, requestBody);
 
         try {
             friendsService.createNewFriendRequest(
-                    userId,
-                    request.getNewFriendId(),
-                    request.getMessage());
-        } catch (InvalidUserIdException | InvalidFriendRequestException e) {
+                    username,
+                    requestBody.getNewFriendId(),
+                    requestBody.getMessage());
+        } catch (InvalidUserIdException | InvalidFriendRequestException | InvalidUsernameException e) {
             log.error("Error creating new friend request for " +
-                            "user with id: {}, request{}",
-                    userId, request, e);
+                            "user with username: {}, request{}",
+                    username, requestBody, e);
 
             return ResponseEntity
                     .status(HttpStatus.BAD_REQUEST)
@@ -115,20 +136,24 @@ public class FriendsController {
                 .build();
     }
 
-    @PostMapping("/{userId}/request/confirm")
+    @PostMapping("/request/confirm")
+    @PreAuthorize("hasRole('ROLE_USER')")
     public ResponseEntity<?> confirmFriendRequest(
-            @PathVariable("userId") Long userId,
-            @RequestBody ConfirmAddFriendRequest request) {
+            @RequestBody ConfirmAddFriendRequest requestBody,
+            HttpServletRequest request) {
+
+        String username = (String) request.getAttribute(USERNAME);
+
         log.info("Confirming friend request from " +
-                        "user with id: {} to user with id: {}",
-                request.getRequesterId(), userId);
+                        "user with id: {} to user with username: {}",
+                requestBody.getRequesterId(), username);
 
         try {
-            friendsService.confirmFriendRequest(userId, request.getRequesterId());
-        } catch (InvalidUserIdException | InvalidFriendRequestException e) {
+            friendsService.confirmFriendRequest(username, requestBody.getRequesterId());
+        } catch (InvalidUserIdException | InvalidFriendRequestException | InvalidUsernameException e) {
             log.error("Error confirming friend request from" +
                             " user with id: {} to user with id: {}",
-                    request.getRequesterId(), userId, e);
+                    requestBody.getRequesterId(), username, e);
             return ResponseEntity
                     .status(HttpStatus.BAD_REQUEST)
                     .body(ErrorMessage.of(e.getMessage()));
@@ -137,20 +162,24 @@ public class FriendsController {
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/{userId}/request/refuse")
+    @PostMapping("/request/refuse")
+    @PreAuthorize("hasRole('ROLE_USER')")
     public ResponseEntity<?> refuseFriendRequest(
-            @PathVariable("userId") Long userId,
-            @RequestBody RefuseAddFriendRequest request) {
+            @RequestBody RefuseAddFriendRequest requestBody,
+            HttpServletRequest request) {
+
+        String username = (String) request.getAttribute(USERNAME);
+
         log.info("Refusing friend request from " +
-                        "user with id: {} to user with id: {}",
-                request.getRequesterId(), userId);
+                        "user with id: {} to user with username: {}",
+                requestBody.getRequesterId(), username);
 
         try {
-            friendsService.refuseFriendRequest(userId, request.getRequesterId());
-        } catch (InvalidUserIdException | InvalidFriendRequestException e) {
+            friendsService.refuseFriendRequest(username, requestBody.getRequesterId());
+        } catch (InvalidUserIdException | InvalidFriendRequestException | InvalidUsernameException e) {
             log.error("Error refusing friend request from " +
-                            "user with id: {} to user with id: {}",
-                    request.getRequesterId(), userId, e);
+                            "user with id: {} to user with username: {}",
+                    requestBody.getRequesterId(), username, e);
             return ResponseEntity
                     .status(HttpStatus.BAD_REQUEST)
                     .body(ErrorMessage.of(e.getMessage()));
@@ -159,20 +188,24 @@ public class FriendsController {
         return ResponseEntity.noContent().build();
     }
 
-    @DeleteMapping("/{userId}/request/delete")
+    @DeleteMapping("/request/delete")
+    @PreAuthorize("hasRole('ROLE_USER')")
     public ResponseEntity<?> deleteFriendRequestSent(
-            @PathVariable("userId") Long userId,
-            @RequestBody DeleteAddFriendRequest request) {
+            @RequestBody DeleteAddFriendRequest requestBody,
+            HttpServletRequest request) {
+
+        String username = (String) request.getAttribute(USERNAME);
+
         log.info("Deleting friend request from " +
-                        "user with id: {} to user with id: {}",
-                userId, request.getNewFriendId());
+                        "user with username: {} to user with id: {}",
+                username, requestBody.getNewFriendId());
 
         try {
-            friendsService.deleteFriendRequestSent(userId, request.getNewFriendId());
-        } catch (InvalidUserIdException | InvalidFriendRequestException e) {
+            friendsService.deleteFriendRequestSent(username, requestBody.getNewFriendId());
+        } catch (InvalidUserIdException | InvalidFriendRequestException | InvalidUsernameException e) {
             log.error("Error deleting friend request from " +
-                            "user with id: {} to user with id: {}",
-                    request.getNewFriendId(), userId, e);
+                            "user with username: {} to user with id: {}",
+                    requestBody.getNewFriendId(), username, e);
             return ResponseEntity
                     .status(HttpStatus.BAD_REQUEST)
                     .body(ErrorMessage.of(e.getMessage()));
