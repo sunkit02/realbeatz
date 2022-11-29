@@ -25,7 +25,7 @@ import static com.realbeatz.utils.CustomHeaders.USERNAME;
 @RestController
 @Slf4j
 @AllArgsConstructor
-@RequestMapping("/user/friends")
+@RequestMapping("/api/user/friends")
 public class FriendsController {
 
     private final FriendsService friendsService;

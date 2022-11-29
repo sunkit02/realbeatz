@@ -23,7 +23,7 @@ import static com.realbeatz.utils.CustomHeaders.USERNAME;
 @RestController
 @Slf4j
 @AllArgsConstructor
-@RequestMapping("/post")
+@RequestMapping("/api/post")
 public class PostController {
 
     private final PostService postService;

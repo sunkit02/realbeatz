@@ -14,7 +14,7 @@ import java.util.List;
 @RestController
 @AllArgsConstructor
 @Slf4j
-@RequestMapping("/group-chat")
+@RequestMapping("/api/group-chat")
 public class GroupChatController {
 
     private final GroupChatService groupChatService;

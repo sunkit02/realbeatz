@@ -21,7 +21,7 @@ import static com.realbeatz.utils.CustomHeaders.USERNAME;
 @RestController
 @AllArgsConstructor
 @Slf4j
-@RequestMapping("/user")
+@RequestMapping("/api/user")
 public class UserController {
 
     private final UserService userService;
