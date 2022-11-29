@@ -17,4 +17,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Modifying
     @Query(value = "insert into friends_of values (?1, ?2);", nativeQuery = true)
     void addFriends(Long userId1, Long userId2);
+
+    void deleteByUsername(String username);
 }

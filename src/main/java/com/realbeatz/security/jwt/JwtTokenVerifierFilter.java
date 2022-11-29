@@ -21,7 +21,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static org.springframework.http.HttpHeaders.AUTHORIZATION;
+import static com.realbeatz.utils.CustomHeaders.*;
 
 @Slf4j
 public class JwtTokenVerifierFilter extends OncePerRequestFilter {
@@ -63,7 +63,7 @@ public class JwtTokenVerifierFilter extends OncePerRequestFilter {
             var authorities= (List<Map<String, String>>) body.get(jwtConfig.getAuthoritiesHeader());
 
             Set<SimpleGrantedAuthority> simpleGrantedAuthorities = authorities.stream()
-                    .map(m -> new SimpleGrantedAuthority(m.get("authority")))
+                    .map(m -> new SimpleGrantedAuthority(m.get(AUTHORITY)))
                     .collect(Collectors.toSet());
 
             Authentication authentication = new UsernamePasswordAuthenticationToken(
@@ -75,6 +75,10 @@ public class JwtTokenVerifierFilter extends OncePerRequestFilter {
             SecurityContextHolder.getContext().setAuthentication(authentication);
 
             log.info("User with username: '{}' has authenticated.", username);
+
+            // Add username to the request attributes to be used later in controller
+            request.setAttribute(USERNAME, username);
+
         } catch (JwtException e) {
             log.error("Token cannot be trusted: {}", token);
         }

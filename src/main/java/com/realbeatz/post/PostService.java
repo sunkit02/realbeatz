@@ -1,8 +1,6 @@
 package com.realbeatz.post;
 
-import com.realbeatz.exceptions.InvalidPostIdException;
-import com.realbeatz.exceptions.InvalidUserInputException;
-import com.realbeatz.exceptions.InvalidUserIdException;
+import com.realbeatz.exceptions.*;
 import com.realbeatz.post.comment.Comment;
 import com.realbeatz.post.comment.CommentDTO;
 import com.realbeatz.post.comment.CommentRepository;
@@ -50,13 +48,28 @@ public class PostService {
         return PostDTO.map(post);
     }
 
+    public PostDTO createNewPost(Long userId,
+                                 String content,
+                                 String songTitle,
+                                 String artists) throws InvalidUserIdException, InvalidUserInputException {
+        User user = userService.getUserById(userId);
+        return createNewPost(user, content, songTitle, artists);
+    }
+
+    public PostDTO createNewPost(String username,
+                                 String content,
+                                 String songTitle,
+                                 String artists) throws InvalidUserInputException, InvalidUsernameException {
+        User user = userService.getUserByUsername(username);
+        return createNewPost(user, content, songTitle, artists);
+    }
+
     public PostDTO createNewPost(
-            Long userId,
+            User user,
             String content,
             String songTitle,
-            String artists) throws InvalidUserIdException, InvalidUserInputException {
+            String artists) throws InvalidUserInputException {
 
-        User user = userService.getUserById(userId);
 
         Map<String, String> input = new HashMap<>();
         input.put("content", content);
@@ -117,10 +130,33 @@ public class PostService {
         return CommentDTO.map(comment);
     }
 
-    public PostDTO updatePost(Long postId, Map<String, String> updates) throws InvalidPostIdException, InvalidUserInputException {
+    public PostDTO updatePost(Long postId, 
+                              Long userId,
+                              Map<String, String> updates) throws InvalidPostIdException, InvalidUserInputException, InvalidUserIdException, InvalidAccessException {
+        User user = userService.getUserById(userId);
+        return updatePost(postId, user, updates);
+    }
+    
+    public PostDTO updatePost(Long postId,
+                              String username,
+                              Map<String, String> updates) throws InvalidPostIdException, InvalidUserInputException, InvalidUsernameException, InvalidAccessException {
+        User user = userService.getUserByUsername(username);
+        return updatePost(postId, user, updates);
+    }
+    
+    public PostDTO updatePost(Long postId, User user, Map<String, String> updates) throws InvalidPostIdException, InvalidUserInputException, InvalidAccessException {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new InvalidPostIdException(
                         "Post with id: " + postId + " doesn't exist"));
+        
+        // Ensure the person editing the post is the original creator
+        boolean isCreator = post.getCreator().equals(user);
+        if (!isCreator) {
+            throw new InvalidAccessException(
+                    "User with username: " + user.getUsername() +
+                            " is not the creator of post with id: " + postId);
+        }
+
 
         // filter out all fields that are not allowed or doesn't exist
         List<String> validKeys = updates.keySet().stream()
@@ -145,9 +181,16 @@ public class PostService {
     }
 
     public List<PostDTO> getAllPostsByUser(Long userId) throws InvalidUserIdException {
-
         User user = userService.getUserById(userId);
+        return getAllPostsByUser(user);
+    }
 
+    public List<PostDTO> getAllPostsByUser(String username) throws InvalidUsernameException {
+        User user = userService.getUserByUsername(username);
+        return getAllPostsByUser(user);
+    }
+
+    public List<PostDTO> getAllPostsByUser(User user) {
         return postRepository.findPostByCreator(user).stream()
                 .map(PostDTO::map)
                 .toList();

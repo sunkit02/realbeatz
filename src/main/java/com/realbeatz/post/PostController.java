@@ -1,20 +1,24 @@
 package com.realbeatz.post;
 
-import com.realbeatz.payloads.responses.ErrorMessage;
 import com.realbeatz.exceptions.InvalidPostIdException;
-import com.realbeatz.exceptions.InvalidUserIdException;
 import com.realbeatz.exceptions.InvalidUserInputException;
-import com.realbeatz.post.comment.CommentDTO;
+import com.realbeatz.exceptions.InvalidUsernameException;
 import com.realbeatz.payloads.requests.CreatePostRequest;
 import com.realbeatz.payloads.requests.NewCommentRequest;
+import com.realbeatz.payloads.responses.ErrorMessage;
+import com.realbeatz.post.comment.CommentDTO;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Map;
+
+import static com.realbeatz.utils.CustomHeaders.USERNAME;
 
 @RestController
 @Slf4j
@@ -30,6 +34,7 @@ public class PostController {
     }
 
     @GetMapping("/{postId}")
+    @PreAuthorize("hasAnyAuthority('user:read', 'admin:read')")
     public ResponseEntity<?> getPostById(
             @PathVariable(name = "postId") Long postId) {
 
@@ -48,17 +53,22 @@ public class PostController {
     }
 
     @PostMapping("/create")
+    @PreAuthorize("hasAnyRole('ROLE_USER', 'USER_SUPER_ADMIN')")
     public ResponseEntity<?> createNewPost(
-            @RequestBody CreatePostRequest request) {
+            @RequestBody CreatePostRequest requestBody,
+            HttpServletRequest request) {
+
+        String username = (String) request.getAttribute(USERNAME);
+
         PostDTO newPost;
         try {
             newPost = postService.createNewPost(
-                    request.getUserId(),
-                    request.getContent(),
-                    request.getSongTitle(),
-                    request.getArtists());
-        } catch (InvalidUserIdException | InvalidUserInputException e) {
-            log.error("Error creating new post: {}", request);
+                    username,
+                    requestBody.getContent(),
+                    requestBody.getSongTitle(),
+                    requestBody.getArtists());
+        } catch (InvalidUserInputException | InvalidUsernameException e) {
+            log.error("Error creating new post: {}", requestBody);
             return ResponseEntity
                     .status(HttpStatus.BAD_REQUEST)
                     .body(ErrorMessage.of(e.getMessage()));
@@ -66,18 +76,22 @@ public class PostController {
         return ResponseEntity.ok(newPost);
     }
 
-    // todo: implement authorization process to ensure the person editing the post is the owner
+    // todo: implement a way to let super admin edit the post even super admin isn't the original creator
     @PatchMapping("/update/{postId}")
+    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_SUPER_ADMIN')")
     public ResponseEntity<?> updatePost(
             @PathVariable("postId") Long postId,
-            @RequestBody Map<String, String> updates) {
+            @RequestBody Map<String, String> updates,
+            HttpServletRequest request) {
+
+        String ownerUsername = (String) request.getAttribute(USERNAME);
 
         log.info("Updating post with id: {}, updates: {}", postId, updates);
 
         PostDTO postDTO;
 
         try {
-            postDTO = postService.updatePost(postId, updates);
+            postDTO = postService.updatePost(postId, ownerUsername, updates);
         } catch (Exception e) {
             log.error("Error updating post with id: {}, updates: {}",
                     postId, updates, e);
@@ -97,6 +111,7 @@ public class PostController {
 
 
     @GetMapping("/{postId}/comment")
+    @PreAuthorize("hasAnyAuthority('user:read', 'admin:read')")
     public ResponseEntity<?> getAllCommentsOfPostById(
             @PathVariable(name = "postId") Long postId) {
         log.info("Get all comments of post with id: {}", postId);
@@ -119,6 +134,7 @@ public class PostController {
     //todo: get specific comment on post
 
     @PostMapping("/{postId}/comment/create")
+    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_SUPER_ADMIN')")
     public ResponseEntity<?> createNewComment(
             @PathVariable(name = "postId") Long postId,
             @RequestBody NewCommentRequest request) {

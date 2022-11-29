@@ -1,6 +1,7 @@
 package com.realbeatz.user;
 
 import com.realbeatz.exceptions.InvalidUserIdException;
+import com.realbeatz.exceptions.InvalidUsernameException;
 import com.realbeatz.payloads.responses.ErrorMessage;
 import com.realbeatz.post.PostDTO;
 import com.realbeatz.post.PostService;
@@ -11,8 +12,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Map;
+
+import static com.realbeatz.utils.CustomHeaders.USERNAME;
 
 @RestController
 @AllArgsConstructor
@@ -35,50 +39,59 @@ public class UserController {
             return ResponseEntity.ok(userService.getAllUsers());
     }
 
-    @GetMapping("/{userId}")
+    // todo: remove option to get actual user object
+    @GetMapping("/")
     @PreAuthorize("hasAnyAuthority('user:read','admin:read')")
-    public ResponseEntity<?> getUserById(
-            @PathVariable(name = "userId") Long userId,
+    public ResponseEntity<?> getUserByUsername(
             @RequestParam(name = "isDto",
                     required = false,
-                    defaultValue = "true") Boolean isDto) {
+                    defaultValue = "true") Boolean isDto,
+            HttpServletRequest request) {
+
+        String username = (String) request.getAttribute(USERNAME);
+
         // return dto version of user if indicated
         if (isDto)
             try {
-                return ResponseEntity.ok(userService.getUserDTOById(userId));
-            } catch (InvalidUserIdException e) {
-                log.error("Error getting user with id: {}", userId, e);
+
+                return ResponseEntity.ok(userService.getUserDTObyUsername(username));
+
+            } catch (InvalidUsernameException e) {
+                log.error("Error getting user with username: {}", username, e);
                 return ResponseEntity
                         .status(HttpStatus.BAD_REQUEST)
                         .body(ErrorMessage.of(e.getMessage()));
             }
 
         // return actual user object
-        User user;
         try {
-            user = userService.getUserById(userId);
-        } catch (InvalidUserIdException e) {
-            log.error("Error getting user with id: {}", userId, e);
+
+            return ResponseEntity.ok(userService.getUserByUsername(username));
+
+        } catch (InvalidUsernameException e) {
+            log.error("Error getting user with username: {}", username, e);
             return ResponseEntity
                     .status(HttpStatus.BAD_REQUEST)
                     .body(ErrorMessage.of(e.getMessage()));
         }
-        return ResponseEntity.ok(user);
     }
 
     // todo: add patch method used to update user properties
-    @PatchMapping("/update/{userId}")
-    @PreAuthorize("hasRole('ROLE_USER')")
+    @PatchMapping("/update")
+    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_SUPER_ADMIN')")
     public ResponseEntity<?> updateUser(
-            @PathVariable Long userId,
-            @RequestBody Map<String, String> updates) {
-        log.info("Updating user with id: {}, updates: {}", userId, updates);
+            @RequestBody Map<String, String> updates,
+            HttpServletRequest request) {
+
+        String username = (String) request.getAttribute(USERNAME);
+
+        log.info("Updating user with id: {}, updates: {}", username, updates);
 
         UserDTO userDTO;
         try {
-            userDTO = userService.updateUser(userId, updates);
+            userDTO = userService.updateUser(username, updates);
         } catch (Exception e) {
-            log.error("Error updating user with id: {}", userId, e);
+            log.error("Error updating user with username: {}", username, e);
             return ResponseEntity
                     .status(HttpStatus.BAD_REQUEST)
                     .body(ErrorMessage.of(e.getMessage()));
@@ -87,19 +100,21 @@ public class UserController {
         return ResponseEntity.ok(userDTO);
     }
 
-    @PatchMapping("/update/{userId}/profile")
+    @PatchMapping("/update/profile")
     @PreAuthorize("hasRole('ROLE_USER')")
     public ResponseEntity<?> updateUserProfile(
-            @PathVariable("userId") Long userId,
-            @RequestBody Map<String, String> updates) {
+            @RequestBody Map<String, String> updates,
+            HttpServletRequest request) {
 
-        log.info("Updating user profile with id: {}, updates: {}", userId, updates);
+        String username = (String) request.getAttribute(USERNAME);
+
+        log.info("Updating user profile with username: {}, updates: {}", username, updates);
 
         UserDTO userDTO;
         try {
-            userDTO = userService.updateUserProfile(userId, updates);
+            userDTO = userService.updateUserProfile(username, updates);
         } catch (Exception e) {
-            log.error("Error updating user profile with id: {}", userId, e);
+            log.error("Error updating user profile with username: {}", username, e);
             return ResponseEntity
                     .status(HttpStatus.BAD_REQUEST)
                     .body(ErrorMessage.of(e.getMessage()));
@@ -108,17 +123,18 @@ public class UserController {
         return ResponseEntity.ok(userDTO);
     }
 
-    @DeleteMapping("/delete/{userId}")
-    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN')")
-    public ResponseEntity<?> deleteUser(
-            @PathVariable("userId") Long userId) {
+    @DeleteMapping("/delete")
+    @PreAuthorize("hasAnyAuthority('user:write', 'admin:write')")
+    public ResponseEntity<?> deleteUser(HttpServletRequest request) {
 
-        log.info("Deleting user with id: {}", userId);
+        String username = (String) request.getAttribute(USERNAME);
+
+        log.info("Deleting user with username: {}", username);
 
         try {
-            userService.deleteUser(userId);
+            userService.deleteUser(username);
         } catch (InvalidUserIdException e) {
-            log.error("Error deleting user with id: {}", userId, e);
+            log.error("Error deleting user with username: {}", username, e);
             return ResponseEntity
                     .status(HttpStatus.BAD_REQUEST)
                     .body(ErrorMessage.of(e.getMessage()));
@@ -128,7 +144,7 @@ public class UserController {
     }
 
     @GetMapping("/{userId}/posts")
-    @PreAuthorize("hasRole('ROLE_USER')")
+    @PreAuthorize("hasAnyAuthority('user:read', 'admin:read')")
     public ResponseEntity<?> getAllPostsByUser(
             @PathVariable("userId") Long userId) {
 

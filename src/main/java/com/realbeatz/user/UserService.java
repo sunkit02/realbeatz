@@ -62,6 +62,20 @@ public class UserService {
         return UserDTO.map(user);
     }
 
+    public User getUserByUsername(String username) throws InvalidUsernameException {
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new InvalidUsernameException(
+                        "User with username: " + username + " doesn't exist"));
+    }
+
+    public UserDTO getUserDTObyUsername(String username) throws InvalidUsernameException {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new InvalidUsernameException(
+                        "User with username: " + username + " doesn't exist"));
+
+        return UserDTO.map(user);
+    }
+
     public UserDTO registerUser(
             String username,
             String password,
@@ -123,11 +137,31 @@ public class UserService {
         userRepository.deleteById(userId);
     }
 
+    public void deleteUser(String username) throws InvalidUserIdException {
+        if (!userRepository.existsByUsername(username)) {
+            throw new InvalidUserIdException(
+                    "User with username: " + username + " doesn't exist");
+        }
+        userRepository.deleteByUsername(username);
+    }
+
+    public UserDTO updateUser(String username, Map<String, String> updates) throws InvalidUsernameException {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new InvalidUsernameException(
+                        "User with username: " + username + " doesn't exist"));
+
+        return updateUser(user, updates);
+    }
+
     public UserDTO updateUser(Long userId, Map<String, String> updates) throws InvalidUserIdException {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new InvalidUserIdException(
                         "User with id: " + userId + " doesn't exist"));
 
+        return updateUser(user, updates);
+    }
+
+    public UserDTO updateUser(User user, Map<String, String> updates) {
 
         // filter out all fields that are not allowed or doesn't exist
         List<String> validKeys = updates.keySet().stream()
@@ -150,10 +184,23 @@ public class UserService {
         return UserDTO.map(user);
     }
 
+    public UserDTO updateUserProfile(String username, Map<String, String> updates) throws InvalidUsernameException {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new InvalidUsernameException(
+                        "User with username: " + username + " doesn't exist"));
+
+        return updateUserProfile(user, updates);
+    }
+
     public UserDTO updateUserProfile(Long userId, Map<String, String> updates) throws InvalidUserIdException {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new InvalidUserIdException(
                         "User with id: " + userId + " doesn't exist"));
+
+        return updateUserProfile(user, updates);
+    }
+
+    public UserDTO updateUserProfile(User user, Map<String, String> updates) {
 
         UserProfile profile = user.getProfile();
 
@@ -183,11 +230,5 @@ public class UserService {
     @SuppressWarnings("all")
     public User save(User user) {
         return userRepository.save(user);
-    }
-
-    public User getUserByUsername(String username) throws InvalidUsernameException {
-        return userRepository.findByUsername(username)
-                .orElseThrow(() -> new InvalidUsernameException(
-                        "User with username: " + username + " doesn't exist"));
     }
 }

@@ -10,10 +10,12 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 import javax.crypto.SecretKey;
 import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+
+import static com.realbeatz.utils.CustomHeaders.ACCESS_TOKEN;
+import static com.realbeatz.utils.CustomHeaders.REFRESH_TOKEN;
 
 public class JwtUsernameAndPasswordAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
 
@@ -56,7 +58,7 @@ public class JwtUsernameAndPasswordAuthenticationFilter extends UsernamePassword
     protected void successfulAuthentication(HttpServletRequest request,
                                             HttpServletResponse response,
                                             FilterChain chain,
-                                            Authentication authResult) throws ServletException, IOException {
+                                            Authentication authResult) {
         String accessToken = JwtUtils.generateAccessToken(
                 authResult.getName(),
                 authResult.getAuthorities(),
@@ -71,9 +73,9 @@ public class JwtUsernameAndPasswordAuthenticationFilter extends UsernamePassword
                 secretKey
         );
 
-        response.addHeader("access_token",
+        response.addHeader(ACCESS_TOKEN,
                 jwtConfig.getTokenPrefix() + accessToken);
-        response.addHeader("refresh_token",
+        response.addHeader(REFRESH_TOKEN,
                 jwtConfig.getTokenPrefix() + refreshToken);
     }
 }
