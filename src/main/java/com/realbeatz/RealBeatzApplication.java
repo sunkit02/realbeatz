@@ -1,7 +1,7 @@
 package com.realbeatz;
 
 import com.realbeatz.security.auth.AuthUserDetails;
-import com.realbeatz.security.auth.roles.ApplicationUserRole;
+import com.realbeatz.security.auth.roles.UserRole;
 import com.realbeatz.user.User;
 import com.realbeatz.user.UserRepository;
 import com.realbeatz.user.profile.UserProfile;
@@ -29,7 +29,7 @@ public class RealBeatzApplication {
                     .username("admin")
                     .password(passwordEncoder.encode("password"))
                     .registrationDate(LocalDate.now())
-                    .role(ApplicationUserRole.ADMIN)
+                    .role(UserRole.ADMIN)
                     .build();
 
             UserProfile adminProfile = UserProfile.builder()

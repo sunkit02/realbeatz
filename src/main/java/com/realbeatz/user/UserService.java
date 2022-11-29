@@ -20,7 +20,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.Predicate;
 
-import static com.realbeatz.security.auth.roles.ApplicationUserRole.USER;
+import static com.realbeatz.security.auth.roles.UserRole.USER;
 import static com.realbeatz.utils.ValidationUtils.validateField;
 
 @Service

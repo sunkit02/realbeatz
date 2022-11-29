@@ -6,21 +6,21 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static com.realbeatz.security.auth.roles.ApplicationUserPermission.*;
+import static com.realbeatz.security.auth.roles.UserPermission.*;
 
-public enum ApplicationUserRole {
+public enum UserRole {
     USER(Sets.newHashSet(USER_READ, USER_WRITE)),
     MODERATOR(Sets.newHashSet(ADMIN_READ)),
     ADMIN(Sets.newHashSet(ADMIN_READ, ADMIN_WRITE)),
     SUPER_ADMIN(Sets.newHashSet(USER_READ, USER_WRITE, ADMIN_READ, ADMIN_WRITE));
 
-    private final Set<ApplicationUserPermission> permissions;
+    private final Set<UserPermission> permissions;
 
-    ApplicationUserRole(Set<ApplicationUserPermission> permissions) {
+    UserRole(Set<UserPermission> permissions) {
         this.permissions = permissions;
     }
 
-    public Set<ApplicationUserPermission> getPermissions() {
+    public Set<UserPermission> getPermissions() {
         return permissions;
     }
 

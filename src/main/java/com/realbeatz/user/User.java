@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.realbeatz.groupchat.GroupChat;
 import com.realbeatz.post.Post;
 import com.realbeatz.security.auth.AuthUserDetails;
-import com.realbeatz.security.auth.roles.ApplicationUserRole;
+import com.realbeatz.security.auth.roles.UserRole;
 import com.realbeatz.user.friends.FriendRequest;
 import com.realbeatz.user.profile.UserProfile;
 import lombok.*;
@@ -121,6 +121,6 @@ public class User {
 
     @Enumerated(EnumType.STRING)
     @Column(length = 20)
-    private ApplicationUserRole role;
+    private UserRole role;
 
 }

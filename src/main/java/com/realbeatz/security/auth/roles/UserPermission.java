@@ -1,6 +1,6 @@
 package com.realbeatz.security.auth.roles;
 
-public enum ApplicationUserPermission {
+public enum UserPermission {
     USER_READ("user:read"),
     USER_WRITE("user:write"),
     ADMIN_READ("admin:read"),
@@ -8,7 +8,7 @@ public enum ApplicationUserPermission {
 
     private final String permission;
 
-    ApplicationUserPermission(String permission) {
+    UserPermission(String permission) {
         this.permission = permission;
     }
 
