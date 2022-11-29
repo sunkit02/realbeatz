@@ -29,6 +29,7 @@ public class PostController {
     private final PostService postService;
 
     @GetMapping
+    @PreAuthorize("hasAuthority('admin:read')")
     public ResponseEntity<?> getAllPosts() {
         return ResponseEntity.ok(postService.getAllPosts());
     }
