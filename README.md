@@ -22,6 +22,7 @@ Backend:
 - Spring Security
 - Spring Data Jpa
 - MySql
+- JWT
 
 Frontend:
 - HTML
