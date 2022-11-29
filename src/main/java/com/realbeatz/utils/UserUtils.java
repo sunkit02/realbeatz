@@ -1,4 +1,4 @@
-package com.realbeatz.util;
+package com.realbeatz.utils;
 
 import com.realbeatz.user.User;
 import com.realbeatz.user.profile.UserProfile;

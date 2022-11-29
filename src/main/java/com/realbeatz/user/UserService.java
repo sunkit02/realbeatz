@@ -6,7 +6,7 @@ import com.realbeatz.exceptions.InvalidUserInputException;
 import com.realbeatz.exceptions.InvalidUsernameException;
 import com.realbeatz.security.auth.AuthUserDetails;
 import com.realbeatz.user.profile.UserProfile;
-import com.realbeatz.util.UserUtils;
+import com.realbeatz.utils.UserUtils;
 import lombok.AllArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -21,7 +21,7 @@ import java.util.Objects;
 import java.util.function.Predicate;
 
 import static com.realbeatz.security.auth.roles.ApplicationUserRole.USER;
-import static com.realbeatz.util.ValidationUtils.validateField;
+import static com.realbeatz.utils.ValidationUtils.validateField;
 
 @Service
 @AllArgsConstructor

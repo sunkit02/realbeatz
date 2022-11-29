@@ -7,7 +7,7 @@ import lombok.*;
 import javax.persistence.*;
 import java.time.LocalDate;
 
-import static com.realbeatz.util.UserUtils.*;
+import static com.realbeatz.utils.UserUtils.*;
 
 @Entity
 @Getter

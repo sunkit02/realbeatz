@@ -8,7 +8,7 @@ import com.realbeatz.post.comment.CommentDTO;
 import com.realbeatz.post.comment.CommentRepository;
 import com.realbeatz.user.User;
 import com.realbeatz.user.UserService;
-import com.realbeatz.util.PostUtils;
+import com.realbeatz.utils.PostUtils;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ReflectionUtils;
@@ -21,7 +21,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.Predicate;
 
-import static com.realbeatz.util.ValidationUtils.validateField;
+import static com.realbeatz.utils.ValidationUtils.validateField;
 
 @Service
 @AllArgsConstructor

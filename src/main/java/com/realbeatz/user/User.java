@@ -14,8 +14,8 @@ import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
 
-import static com.realbeatz.util.UserUtils.MAX_PASSWORD_LENGTH;
-import static com.realbeatz.util.UserUtils.MAX_USERNAME_LENGTH;
+import static com.realbeatz.utils.UserUtils.MAX_PASSWORD_LENGTH;
+import static com.realbeatz.utils.UserUtils.MAX_USERNAME_LENGTH;
 
 @Entity
 @Getter

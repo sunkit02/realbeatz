@@ -1,4 +1,4 @@
-package com.realbeatz.util;
+package com.realbeatz.utils;
 
 import java.util.HashMap;
 import java.util.Map;

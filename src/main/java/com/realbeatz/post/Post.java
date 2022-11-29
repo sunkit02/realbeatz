@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
-import static com.realbeatz.util.PostUtils.*;
+import static com.realbeatz.utils.PostUtils.*;
 
 @Entity
 @Getter
