@@ -27,7 +27,8 @@ public class UserController {
     private final UserService userService;
     private final PostService postService;
 
-    @GetMapping
+    // todo: move to admin controller
+    @GetMapping("/all")
     @PreAuthorize("hasAuthority('admin:read')")
     public ResponseEntity<?> getAllUsers(
             @RequestParam(name = "isDto",
@@ -40,7 +41,7 @@ public class UserController {
     }
 
     // todo: remove option to get actual user object
-    @GetMapping("/")
+    @GetMapping
     @PreAuthorize("hasAnyAuthority('user:read','admin:read')")
     public ResponseEntity<?> getUserByUsername(
             @RequestParam(name = "isDto",
