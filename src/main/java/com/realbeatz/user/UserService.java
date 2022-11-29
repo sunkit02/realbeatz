@@ -10,6 +10,7 @@ import com.realbeatz.utils.UserUtils;
 import lombok.AllArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ReflectionUtils;
 
 import java.lang.reflect.Field;
@@ -137,6 +138,7 @@ public class UserService {
         userRepository.deleteById(userId);
     }
 
+    @Transactional
     public void deleteUser(String username) throws InvalidUserIdException {
         if (!userRepository.existsByUsername(username)) {
             throw new InvalidUserIdException(

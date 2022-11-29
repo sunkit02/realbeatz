@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
-import static com.realbeatz.utils.CustomHeaders.USERNAME;
+import static com.realbeatz.utils.HttpRequestUtils.getUsernameFromRequest;
 
 /**
  * Controller solely for managing friend relationship between users
@@ -36,7 +36,7 @@ public class FriendsController {
     public ResponseEntity<?> getAllFriendsByUserId(
             HttpServletRequest request) {
 
-        String username = (String) request.getAttribute(USERNAME);
+        String username = getUsernameFromRequest(request);
 
         log.info("Getting all friends of user with id: {}", username);
 
@@ -62,7 +62,7 @@ public class FriendsController {
             @RequestBody AddFriendRequest requestBody,
             HttpServletRequest request) {
 
-        String username = (String) request.getAttribute(USERNAME);
+        String username = getUsernameFromRequest(request);
 
         log.info("Adding new friend for " +
                 "user with username: {}, request: {}", username, requestBody);
@@ -87,7 +87,7 @@ public class FriendsController {
             @RequestBody DeleteFriendRequest requestBody,
             HttpServletRequest request) {
 
-        String username = (String) request.getAttribute(USERNAME);
+        String username = getUsernameFromRequest(request);
 
         log.info("Deleting friend for " +
                 "user with username: {}, request: {}", username, requestBody);
@@ -110,7 +110,7 @@ public class FriendsController {
             @RequestBody AddFriendRequest requestBody,
             HttpServletRequest request) {
 
-        String username = (String) request.getAttribute(USERNAME);
+        String username = getUsernameFromRequest(request);
 
         log.info("Creating new friend request for user with username: {}, request{}",
                 username, requestBody);
@@ -142,7 +142,7 @@ public class FriendsController {
             @RequestBody ConfirmAddFriendRequest requestBody,
             HttpServletRequest request) {
 
-        String username = (String) request.getAttribute(USERNAME);
+        String username = getUsernameFromRequest(request);
 
         log.info("Confirming friend request from " +
                         "user with id: {} to user with username: {}",
@@ -168,7 +168,7 @@ public class FriendsController {
             @RequestBody RefuseAddFriendRequest requestBody,
             HttpServletRequest request) {
 
-        String username = (String) request.getAttribute(USERNAME);
+        String username = getUsernameFromRequest(request);
 
         log.info("Refusing friend request from " +
                         "user with id: {} to user with username: {}",
@@ -194,7 +194,7 @@ public class FriendsController {
             @RequestBody DeleteAddFriendRequest requestBody,
             HttpServletRequest request) {
 
-        String username = (String) request.getAttribute(USERNAME);
+        String username = getUsernameFromRequest(request);
 
         log.info("Deleting friend request from " +
                         "user with username: {} to user with id: {}",

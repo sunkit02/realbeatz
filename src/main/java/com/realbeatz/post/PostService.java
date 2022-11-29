@@ -101,16 +101,28 @@ public class PostService {
                 .toList();
     }
 
-    // todo: validate user input
-    public CommentDTO createNewComment(
-            Long userId,
-            Long postId,
-            String content) throws Exception {
-
+    public CommentDTO createNewComment(Long userId,
+                                       Long postId,
+                                       String content) throws InvalidUserIdException, InvalidPostIdException {
         User user = userService.getUserById(userId);
 
+        return createNewComment(user, postId, content);
+    }
+
+    public CommentDTO createNewComment(String username,
+                                       Long postId,
+                                       String content) throws InvalidPostIdException, InvalidUsernameException {
+        User user = userService.getUserByUsername(username);
+
+        return createNewComment(user, postId, content);
+    }
+    // todo: validate user input
+    public CommentDTO createNewComment(User user,
+                                       Long postId,
+                                       String content) throws InvalidPostIdException {
+
         Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new Exception(
+                .orElseThrow(() -> new InvalidPostIdException(
                         "Post with id: " + postId + " doesn't exist"));
 
         // create comment

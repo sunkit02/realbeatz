@@ -1,5 +1,6 @@
 package com.realbeatz.post;
 
+import com.realbeatz.exceptions.InvalidAccessException;
 import com.realbeatz.exceptions.InvalidPostIdException;
 import com.realbeatz.exceptions.InvalidUserInputException;
 import com.realbeatz.exceptions.InvalidUsernameException;
@@ -19,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.realbeatz.utils.CustomHeaders.USERNAME;
+import static com.realbeatz.utils.HttpRequestUtils.getUsernameFromRequest;
 
 @RestController
 @Slf4j
@@ -59,7 +61,7 @@ public class PostController {
             @RequestBody CreatePostRequest requestBody,
             HttpServletRequest request) {
 
-        String username = (String) request.getAttribute(USERNAME);
+        String username = getUsernameFromRequest(request);
 
         PostDTO newPost;
         try {
@@ -85,14 +87,23 @@ public class PostController {
             @RequestBody Map<String, String> updates,
             HttpServletRequest request) {
 
-        String ownerUsername = (String) request.getAttribute(USERNAME);
+        String username = (String) request.getAttribute(USERNAME);
 
         log.info("Updating post with id: {}, updates: {}", postId, updates);
 
         PostDTO postDTO;
 
         try {
-            postDTO = postService.updatePost(postId, ownerUsername, updates);
+            postDTO = postService.updatePost(postId, username, updates);
+
+        } catch (InvalidAccessException e) {
+            log.error("User with username: {} is not authorized to update post with id: {}",
+                    username, postId);
+
+            return ResponseEntity
+                    .status(HttpStatus.FORBIDDEN)
+                    .body(ErrorMessage.of(e.getMessage()));
+
         } catch (Exception e) {
             log.error("Error updating post with id: {}, updates: {}",
                     postId, updates, e);
@@ -138,7 +149,10 @@ public class PostController {
     @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_SUPER_ADMIN')")
     public ResponseEntity<?> createNewComment(
             @PathVariable(name = "postId") Long postId,
-            @RequestBody NewCommentRequest request) {
+            @RequestBody NewCommentRequest requestBody,
+            HttpServletRequest request) {
+
+        String username = getUsernameFromRequest(request);
 
         log.info("Posting new comment on post with id: {}", postId);
 
@@ -146,7 +160,7 @@ public class PostController {
 
         try {
             newCommentDTO = postService.createNewComment(
-                    request.getUserId(), postId, request.getContent());
+                    username, postId, requestBody.getContent());
         } catch (Exception e) {
             log.error("Error posting new comment on post with id: {}", postId, e);
 
@@ -161,7 +175,6 @@ public class PostController {
     // todo: update comment
 
     // todo: delete comment
-
 
 
 }

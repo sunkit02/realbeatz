@@ -16,7 +16,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Map;
 
-import static com.realbeatz.utils.CustomHeaders.USERNAME;
+import static com.realbeatz.utils.HttpRequestUtils.getUsernameFromRequest;
 
 @RestController
 @AllArgsConstructor
@@ -49,7 +49,7 @@ public class UserController {
                     defaultValue = "true") Boolean isDto,
             HttpServletRequest request) {
 
-        String username = (String) request.getAttribute(USERNAME);
+        String username = getUsernameFromRequest(request);
 
         // return dto version of user if indicated
         if (isDto)
@@ -84,7 +84,7 @@ public class UserController {
             @RequestBody Map<String, String> updates,
             HttpServletRequest request) {
 
-        String username = (String) request.getAttribute(USERNAME);
+        String username = getUsernameFromRequest(request);
 
         log.info("Updating user with id: {}, updates: {}", username, updates);
 
@@ -107,7 +107,7 @@ public class UserController {
             @RequestBody Map<String, String> updates,
             HttpServletRequest request) {
 
-        String username = (String) request.getAttribute(USERNAME);
+        String username = getUsernameFromRequest(request);
 
         log.info("Updating user profile with username: {}, updates: {}", username, updates);
 
@@ -128,7 +128,7 @@ public class UserController {
     @PreAuthorize("hasAnyAuthority('user:write', 'admin:write')")
     public ResponseEntity<?> deleteUser(HttpServletRequest request) {
 
-        String username = (String) request.getAttribute(USERNAME);
+        String username = getUsernameFromRequest(request);
 
         log.info("Deleting user with username: {}", username);
 
@@ -144,19 +144,21 @@ public class UserController {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/{userId}/posts")
+    @GetMapping("/posts")
     @PreAuthorize("hasAnyAuthority('user:read', 'admin:read')")
     public ResponseEntity<?> getAllPostsByUser(
-            @PathVariable("userId") Long userId) {
+            HttpServletRequest request) {
 
-        log.info("Getting all posts by user with id: {}", userId);
+        String username = getUsernameFromRequest(request);
+
+        log.info("Getting all posts by user with id: {}", username);
 
         List<PostDTO> posts;
 
         try {
-            posts = postService.getAllPostsByUser(userId);
-        } catch (InvalidUserIdException e) {
-            log.error("Error getting all posts by user with id: {}", userId, e);
+            posts = postService.getAllPostsByUser(username);
+        } catch (InvalidUsernameException e) {
+            log.error("Error getting all posts by user with username: {}", username, e);
 
             return ResponseEntity
                     .status(HttpStatus.BAD_REQUEST)
