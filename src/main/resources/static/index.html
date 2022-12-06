@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Profile Register Test</title>
+</head>
+<body>
+<form>
+    <input type="file"/>
+    <button>Submit</button>
+</form>
+<button onclick="getCachedImage()">Get Cached Image</button>
+<button onclick="getImageDirectly()">Get Image Directly</button>
+<script>
+    let form = document.querySelector("form");
+    form.addEventListener("submit", handleSubmit);
+
+    let apiURL = "http://localhost:8080/api";
+    let profilePictureFullName = "";
+
+
+    async function handleSubmit(event) {
+        event.preventDefault();
+        let file = event.target[0].files[0];
+        console.log(file);
+
+        let username = "";
+
+        for (let i = 0; i < 10; i++) {
+            username.concat(Math.floor(Math.random()*10).toString());
+        }
+
+        let userProfileJSON = JSON.stringify({
+            username: Math.random(),
+            password: "password",
+            lastName: "Tsui",
+            firstName: "Sun Kit",
+            dob: "2002-02-28",
+            bio: "Hello World, my name is Sun Kit!"
+        });
+
+
+        let formData = new FormData();
+        formData.append("profilePicture", file);
+        formData.append("userProfile", new Blob([userProfileJSON], {
+            type: "application/json"
+        }));
+
+        let options = {
+            method: "post",
+            body: formData
+        }
+
+        await fetch(apiURL + "/auth/register", options)
+            .then(response => response.json())
+            .then(data => {
+                console.log(data);
+
+                profilePictureFullName = data.profile.profilePictureFullName;
+
+                let img = document.createElement("img");
+                img.width = 200;
+                img.height = 200;
+                img.src = apiURL + "/user/profile-pictures/" + profilePictureFullName;
+                document.body.appendChild(img);
+
+            })
+            .catch(error => console.log(error));
+    }
+
+    async function getCachedImage() {
+        await fetch(apiURL + "/auth/getProfilePic/cache")
+            .then(response => response.text())
+            .then(data => {
+                console.log(data);
+                let img = document.createElement("img");
+                img.width = 200;
+                img.height = 200;
+                img.src = "data:image/jpeg;base64," + data;
+                document.body.appendChild(img);
+            })
+    }
+
+    async function getImageDirectly() {
+        await fetch(apiURL + "/user/profile-pictures/" + profilePictureFullName)
+            .then(response => {
+                console.log(response);
+                response.json();
+            })
+            .then(data => {
+                console.log(data);
+                console.log(data.name);
+            })
+    }
+</script>
+</body>
+</html>

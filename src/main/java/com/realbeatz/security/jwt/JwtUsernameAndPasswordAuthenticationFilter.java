@@ -59,14 +59,14 @@ public class JwtUsernameAndPasswordAuthenticationFilter extends UsernamePassword
                                             HttpServletResponse response,
                                             FilterChain chain,
                                             Authentication authResult) {
-        String accessToken = JwtUtils.generateAccessToken(
+        String accessToken = JwtUtils.generateToken(
                 authResult.getName(),
                 authResult.getAuthorities(),
                 jwtConfig.getAccessTokenExpirationAfterDays(),
                 secretKey
         );
 
-        String refreshToken = JwtUtils.generateRefreshToken(
+        String refreshToken = JwtUtils.generateToken(
                 authResult.getName(),
                 authResult.getAuthorities(),
                 jwtConfig.getRefreshTokenExpirationAfterDays(),
@@ -77,5 +77,6 @@ public class JwtUsernameAndPasswordAuthenticationFilter extends UsernamePassword
                 jwtConfig.getTokenPrefix() + accessToken);
         response.addHeader(REFRESH_TOKEN,
                 jwtConfig.getTokenPrefix() + refreshToken);
+        response.addHeader("Access-Control-Allow-Origin", "*");
     }
 }

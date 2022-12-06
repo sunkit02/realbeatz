@@ -1,6 +1,7 @@
 package com.realbeatz.user.profile;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.realbeatz.configs.FileUploadConfig;
 import com.realbeatz.user.User;
 import lombok.*;
 
@@ -44,6 +45,10 @@ public class UserProfile {
     @Column(length = MAX_BIO_LENGTH)
     @Builder.Default
     private String bio = "";
+
+    @Builder.Default
+    private String profilePictureFullName =
+            FileUploadConfig.getDefaultProfilePicFullName();
 
     public Integer getAge() {
         if (dob == null) return null;
