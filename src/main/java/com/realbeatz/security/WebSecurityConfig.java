@@ -2,7 +2,6 @@ package com.realbeatz.security;
 
 import com.realbeatz.security.jwt.JwtConfig;
 import com.realbeatz.security.jwt.JwtTokenVerifierFilter;
-import com.realbeatz.security.jwt.JwtUsernameAndPasswordAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -16,6 +15,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import javax.crypto.SecretKey;
 
@@ -34,21 +34,23 @@ public class WebSecurityConfig {
     @Bean
     public SecurityFilterChain configureSecurityFilterChain(HttpSecurity http) throws Exception {
         // override default login url
-        JwtUsernameAndPasswordAuthenticationFilter authenticationFilter =
-                new JwtUsernameAndPasswordAuthenticationFilter(authenticationManager(), jwtConfig, secretKey);
-        authenticationFilter.setFilterProcessesUrl("/api/auth/login");
+//        JwtUsernameAndPasswordAuthenticationFilter authenticationFilter =
+//                new JwtUsernameAndPasswordAuthenticationFilter(authenticationManager(), jwtConfig, secretKey);
+//        authenticationFilter.setFilterProcessesUrl("/api/login");
 
         http
-                .cors().and()
+                .cors()
+                .and()
                 .csrf().disable()
                 .sessionManagement()
                     .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
-                .addFilter(authenticationFilter)
-                .addFilterAfter(new JwtTokenVerifierFilter(secretKey, jwtConfig), JwtUsernameAndPasswordAuthenticationFilter.class)
+//                .addFilter(authenticationFilter)
+                .addFilterAfter(new JwtTokenVerifierFilter(secretKey, jwtConfig), UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests()
-                .antMatchers("/api/auth/login").permitAll()
-                .antMatchers("/api/auth/register").permitAll()
+                .antMatchers("/api/auth/**").permitAll() // register and login
+                .antMatchers("/api/user/**").permitAll()
+                .antMatchers("/api/user/profile-pictures/**").permitAll() // profile img fetching
                 .anyRequest().authenticated();
 
         return http.build();

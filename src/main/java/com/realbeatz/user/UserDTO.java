@@ -46,6 +46,7 @@ public class UserDTO {
                 user.getFriendRequestsReceived().stream()
                         .map(FriendRequestDTO::map)
                         .toList();
+
         return UserDTO.builder()
                 .id(user.getId())
                 .username(user.getUsername())

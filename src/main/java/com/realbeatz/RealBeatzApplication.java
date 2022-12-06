@@ -5,6 +5,7 @@ import com.realbeatz.security.auth.roles.UserRole;
 import com.realbeatz.user.User;
 import com.realbeatz.user.UserRepository;
 import com.realbeatz.user.profile.UserProfile;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -14,16 +15,19 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDate;
 
+import static com.realbeatz.configs.FileUploadConfig.APPLICATION_BASE_PATH;
+
 @SpringBootApplication
 @ConfigurationPropertiesScan("com.realbeatz.security.jwt")
 public class RealBeatzApplication {
+
     public static void main(String[] args) {
         SpringApplication.run(RealBeatzApplication.class, args);
     }
 
     @Bean
     CommandLineRunner run(UserRepository userRepository,
-                          PasswordEncoder passwordEncoder) {
+                          @Qualifier("bcrypt") PasswordEncoder passwordEncoder) {
         return args -> {
             User admin = User.builder()
                     .username("admin")
@@ -48,6 +52,13 @@ public class RealBeatzApplication {
 
             userRepository.save(admin);
             System.out.println(admin);
+        };
+    }
+
+    @Bean
+    CommandLineRunner printBasePath() {
+        return args -> {
+            System.out.println(APPLICATION_BASE_PATH);
         };
     }
 }

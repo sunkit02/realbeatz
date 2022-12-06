@@ -1,9 +1,6 @@
 package com.realbeatz.user;
 
-import com.realbeatz.exceptions.DuplicateUsernameException;
-import com.realbeatz.exceptions.InvalidUserIdException;
-import com.realbeatz.exceptions.InvalidUserInputException;
-import com.realbeatz.exceptions.InvalidUsernameException;
+import com.realbeatz.exceptions.*;
 import com.realbeatz.security.auth.AuthUserDetails;
 import com.realbeatz.user.profile.UserProfile;
 import com.realbeatz.utils.UserUtils;
@@ -12,7 +9,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ReflectionUtils;
+import org.springframework.web.multipart.MultipartFile;
 
+import javax.annotation.Nullable;
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.time.LocalDate;
 import java.util.HashMap;
@@ -21,7 +21,10 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.Predicate;
 
+import static com.realbeatz.configs.FileUploadConfig.getDefaultProfilePicFullName;
+import static com.realbeatz.configs.FileUploadConfig.getProfilePictureUploadDirectory;
 import static com.realbeatz.security.auth.roles.UserRole.USER;
+import static com.realbeatz.utils.FileUtils.saveProfilePicture;
 import static com.realbeatz.utils.ValidationUtils.validateField;
 
 @Service
@@ -77,13 +80,14 @@ public class UserService {
         return UserDTO.map(user);
     }
 
-    public UserDTO registerUser(
-            String username,
-            String password,
-            String lastName,
-            String firstName,
-            LocalDate dob,
-            String bio) throws DuplicateUsernameException, InvalidUserInputException {
+    public UserDTO registerUser(String username,
+                                String password,
+                                String lastName,
+                                String firstName,
+                                LocalDate dob,
+                                String bio,
+                                @Nullable MultipartFile profilePictureFile) throws DuplicateUsernameException, InvalidUserInputException, IllegalFileTypeException, IOException {
+
         if (userRepository.existsByUsername(username)) {
             throw new DuplicateUsernameException(
                     "Username: " + username + " is already taken");
@@ -103,6 +107,13 @@ public class UserService {
             validateField(field, value, userAccountChecks);
         }
 
+        String profilePictureFullName;
+        // save the picture uploaded if exists else set to default profile picture
+        if (profilePictureFile != null) {
+            profilePictureFullName = saveProfilePicture(profilePictureFile, getProfilePictureUploadDirectory());
+        } else {
+            profilePictureFullName = getDefaultProfilePicFullName();
+        }
 
         User newUser = User.builder()
                 .username(username)
@@ -117,6 +128,7 @@ public class UserService {
                 .firstName(firstName)
                 .dob(dob)
                 .bio((bio == null) ? "" : bio)
+                .profilePictureFullName(profilePictureFullName)
                 .build();
 
         AuthUserDetails authUserDetails = AuthUserDetails.builder()
