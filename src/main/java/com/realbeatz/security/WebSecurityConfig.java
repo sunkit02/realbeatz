@@ -49,7 +49,6 @@ public class WebSecurityConfig {
                 .addFilterAfter(new JwtTokenVerifierFilter(secretKey, jwtConfig), UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests()
                 .antMatchers("/api/auth/**").permitAll() // register and login
-                .antMatchers("/api/user/**").permitAll()
                 .antMatchers("/api/user/profile-pictures/**").permitAll() // profile img fetching
                 .anyRequest().authenticated();
 

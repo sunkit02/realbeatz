@@ -20,7 +20,7 @@ import java.util.Map;
 
 import static com.realbeatz.utils.HttpRequestUtils.getUsernameFromRequest;
 
-@CrossOrigin("*")
+@CrossOrigin(origins = "*")
 @RestController
 @AllArgsConstructor
 @Slf4j
