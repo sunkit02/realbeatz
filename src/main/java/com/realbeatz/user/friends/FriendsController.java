@@ -22,6 +22,7 @@ import static com.realbeatz.utils.HttpRequestUtils.getUsernameFromRequest;
 /**
  * Controller solely for managing friend relationship between users
  */
+@CrossOrigin(originPatterns = "*", origins = "*")
 @RestController
 @Slf4j
 @AllArgsConstructor
@@ -29,7 +30,6 @@ import static com.realbeatz.utils.HttpRequestUtils.getUsernameFromRequest;
 public class FriendsController {
 
     private final FriendsService friendsService;
-//    private final SimpMessagingTemplate simpMessagingTemplate;
 
     @GetMapping
     @PreAuthorize("hasAnyAuthority('user:read', 'admin:read')")
@@ -50,6 +50,7 @@ public class FriendsController {
                     .status(HttpStatus.BAD_REQUEST)
                     .body(ErrorMessage.of(e.getMessage()));
         }
+        log.info("Friends fetched by user {} : {}", username, friendsList);
 
         return ResponseEntity.ok(friendsList);
     }
@@ -212,5 +213,24 @@ public class FriendsController {
         }
 
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/request/all")
+    @PreAuthorize("hasAnyAuthority('user:read', 'admin:read')")
+    public ResponseEntity<?> getAllFriendRequestsReceived(HttpServletRequest request) {
+        String username = getUsernameFromRequest(request);
+        log.info("Fetching all friend requests received for user: {}", username);
+
+        List<FriendRequestDTO> friendRequestDTOs;
+
+        try {
+            friendRequestDTOs = friendsService.getAllFriendRequestsReceived(username);
+        } catch (InvalidUsernameException e) {
+            log.error("Error fetching all friend requests received for user: {}", username);
+            return ResponseEntity
+                    .badRequest()
+                    .body(e.getMessage());
+        }
+        return ResponseEntity.ok(friendRequestDTOs);
     }
 }

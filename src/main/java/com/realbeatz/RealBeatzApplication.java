@@ -50,8 +50,10 @@ public class RealBeatzApplication {
             admin.setProfile(adminProfile);
             admin.setAuthUserDetails(adminAuthUserDetails);
 
-            userRepository.save(admin);
-            System.out.println(admin);
+            if (!userRepository.existsByUsername(admin.getUsername())) {
+                userRepository.save(admin);
+                System.out.println(admin);
+            }
         };
     }
 

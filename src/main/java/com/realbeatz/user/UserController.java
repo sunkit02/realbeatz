@@ -33,15 +33,10 @@ public class UserController {
 
     // todo: move to admin controller
     @GetMapping("/all")
-    @PreAuthorize("hasAuthority('admin:read')")
-    public ResponseEntity<?> getAllUsers(
-            @RequestParam(name = "isDto",
-                    required = false,
-                    defaultValue = "false") Boolean isDto) {
-        if (isDto)
-            return ResponseEntity.ok(userService.getAllUserDTOs());
-        else
-            return ResponseEntity.ok(userService.getAllUsers());
+    @PreAuthorize("hasAnyAuthority('user:read','admin:read')")
+    public ResponseEntity<?> getAllUsers() {
+        log.info("Fetching all users");
+        return ResponseEntity.ok(userService.getAllUserDTOs());
     }
 
     @GetMapping
@@ -65,7 +60,8 @@ public class UserController {
 
     /**
      * Returns a UserDTO based on username or user id entered
-     * @param userInfo username or user id
+     *
+     * @param userInfo   username or user id
      * @param isUsername flag to determine whether username or user id is being requested
      * @return UserDTO requested
      */

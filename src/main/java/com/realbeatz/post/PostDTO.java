@@ -18,6 +18,9 @@ public class PostDTO {
     private Integer likes;
     private List<CommentDTO> comments;
     private Long userId;
+
+    private String posterUsername;
+    private String posterProfilePictureFullName;
     private LocalDateTime postTime;
 
     public static PostDTO map(Post post) {
@@ -33,6 +36,8 @@ public class PostDTO {
                 .likes(post.getLikes())
                 .comments(comments)
                 .userId(post.getCreator().getId())
+                .posterUsername(post.getCreator().getUsername())
+                .posterProfilePictureFullName(post.getCreator().getProfile().getProfilePictureFullName())
                 .postTime(post.getPostTime())
                 .build();
     }

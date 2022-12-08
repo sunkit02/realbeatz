@@ -13,10 +13,7 @@ import org.springframework.util.ReflectionUtils;
 
 import java.lang.reflect.Field;
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.function.Predicate;
 
 import static com.realbeatz.utils.ValidationUtils.validateField;
@@ -116,6 +113,7 @@ public class PostService {
 
         return createNewComment(user, postId, content);
     }
+
     // todo: validate user input
     public CommentDTO createNewComment(User user,
                                        Long postId,
@@ -142,25 +140,25 @@ public class PostService {
         return CommentDTO.map(comment);
     }
 
-    public PostDTO updatePost(Long postId, 
+    public PostDTO updatePost(Long postId,
                               Long userId,
                               Map<String, String> updates) throws InvalidPostIdException, InvalidUserInputException, InvalidUserIdException, InvalidAccessException {
         User user = userService.getUserById(userId);
         return updatePost(postId, user, updates);
     }
-    
+
     public PostDTO updatePost(Long postId,
                               String username,
                               Map<String, String> updates) throws InvalidPostIdException, InvalidUserInputException, InvalidUsernameException, InvalidAccessException {
         User user = userService.getUserByUsername(username);
         return updatePost(postId, user, updates);
     }
-    
+
     public PostDTO updatePost(Long postId, User user, Map<String, String> updates) throws InvalidPostIdException, InvalidUserInputException, InvalidAccessException {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new InvalidPostIdException(
                         "Post with id: " + postId + " doesn't exist"));
-        
+
         // Ensure the person editing the post is the original creator
         boolean isCreator = post.getCreator().equals(user);
         if (!isCreator) {
@@ -204,6 +202,21 @@ public class PostService {
 
     public List<PostDTO> getAllPostsByUser(User user) {
         return postRepository.findPostByCreator(user).stream()
+                .map(PostDTO::map)
+                .toList();
+    }
+
+    public List<PostDTO> getAllPostsRelatedToUser(String username) throws InvalidUsernameException {
+        User user = userService.getUserByUsername(username);
+        Set<User> friends = user.getFriends();
+
+        Set<Post> posts = user.getPosts();
+
+        friends.stream()
+                .map(User::getPosts)
+                .forEach(posts::addAll);
+
+        return posts.stream()
                 .map(PostDTO::map)
                 .toList();
     }

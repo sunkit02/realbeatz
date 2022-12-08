@@ -12,6 +12,7 @@ public class CommentDTO {
     private String content;
     private LocalDateTime timePosted;
     private Long userId;
+    private String posterUsername;
 
     public static CommentDTO map(Comment comment) {
         return CommentDTO.builder()
@@ -19,6 +20,7 @@ public class CommentDTO {
                 .content(comment.getContent())
                 .timePosted(comment.getTimePosted())
                 .userId(comment.getUser().getId())
+                .posterUsername(comment.getUser().getUsername())
                 .build();
     }
 }

@@ -367,4 +367,12 @@ public class FriendsService {
         }
         return unprocessedFriendRequestsReceived;
     }
+
+    public List<FriendRequestDTO> getAllFriendRequestsReceived(String username) throws InvalidUsernameException {
+        User user = userService.getUserByUsername(username);
+        Set<FriendRequest> friendRequestsReceived = user.getFriendRequestsReceived();
+        return friendRequestsReceived.stream()
+                .map(FriendRequestDTO::map)
+                .toList();
+    }
 }

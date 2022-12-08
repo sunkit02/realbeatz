@@ -22,6 +22,7 @@ import java.util.Map;
 import static com.realbeatz.utils.CustomHeaders.USERNAME;
 import static com.realbeatz.utils.HttpRequestUtils.getUsernameFromRequest;
 
+@CrossOrigin(origins = "*", originPatterns = "*")
 @RestController
 @Slf4j
 @AllArgsConstructor
@@ -177,4 +178,22 @@ public class PostController {
     // todo: delete comment
 
 
+    @GetMapping("/get-all-related")
+    public ResponseEntity<?> fetchAllRelatedPosts(HttpServletRequest request) {
+        String username = getUsernameFromRequest(request);
+        log.info("Fetching all posts related to user: {}", username);
+
+        List<PostDTO> postDTOs;
+
+        try {
+            postDTOs = postService.getAllPostsRelatedToUser(username);
+        } catch (InvalidUsernameException e) {
+            log.info("Error fetching all posts related to user: {}", username);
+            return ResponseEntity
+                    .badRequest()
+                    .body(e.getMessage());
+        }
+
+        return ResponseEntity.ok(postDTOs);
+    }
 }
