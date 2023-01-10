@@ -8,6 +8,8 @@ through sharing music in real time.
 
 Note: Although original goal of sharing music in real time wasn't met, the application is still
 capable of connecting friends and family via posts.
+
+This is the backend REST API repository. The following is the link to the frontend repository: https://github.com/ReynXBC/realbeatz-front
 _____________________________________________
 
 Group members:
